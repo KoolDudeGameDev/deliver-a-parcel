@@ -102,29 +102,29 @@ scene.add(hubRing);
 const YARD = 13, GATE = 3.5, ROOF_COLORS = [0x8a4b38, 0x56606e, 0x6b3e2e, 0x4e6a58, 0x7c3f3f];
 const HOUSES = [
   // Around the inner ring.
-  { name: 'Red',    color: 0xe0524d, x: -30,  z: -62,  dx: 0,  dz: 1,  dog: 'tiny' },
+  { name: 'Red',    color: 0xe0524d, x: -30,  z: -62,  dx: 0,  dz: 1,  dog: 'chihuahua' },
   { name: 'Blue',   color: 0x4d8de0, x: 30,   z: -62,  dx: 0,  dz: 1,  dog: null },
-  { name: 'Yellow', color: 0xe8c23c, x: 62,   z: -30,  dx: -1, dz: 0,  dog: 'medium' },
+  { name: 'Yellow', color: 0xe8c23c, x: 62,   z: -30,  dx: -1, dz: 0,  dog: 'beagle' },
   { name: 'Orange', color: 0xf0883a, x: 62,   z: 30,   dx: -1, dz: 0,  dog: null },
   { name: 'Green',  color: 0x3fae68, x: 30,   z: 62,   dx: 0,  dz: -1, dog: null },
-  { name: 'Pink',   color: 0xe77fb3, x: -30,  z: 62,   dx: 0,  dz: -1, dog: 'small' },
+  { name: 'Pink',   color: 0xe77fb3, x: -30,  z: 62,   dx: 0,  dz: -1, dog: 'shihTzu' },
   { name: 'Purple', color: 0x8d63d6, x: -62,  z: 30,   dx: 1,  dz: 0,  dog: null },
-  { name: 'Teal',   color: 0x2fb5a8, x: -62,  z: -30,  dx: 1,  dz: 0,  dog: 'tiny' },
+  { name: 'Teal',   color: 0x2fb5a8, x: -62,  z: -30,  dx: 1,  dz: 0,  dog: 'pomeranian' },
   // Just inside the outer ring, gates facing it.
   { name: 'Coral',  color: 0xf0776a, x: -30,  z: -96,  dx: 0,  dz: -1, dog: null },
-  { name: 'Lime',   color: 0x9ccc3c, x: 96,   z: -30,  dx: 1,  dz: 0,  dog: 'big' },
-  { name: 'Navy',   color: 0x3a5a9a, x: 30,   z: 96,   dx: 0,  dz: 1,  dog: 'medium' },
+  { name: 'Lime',   color: 0x9ccc3c, x: 96,   z: -30,  dx: 1,  dz: 0,  dog: 'germanShepherd' },
+  { name: 'Navy',   color: 0x3a5a9a, x: 30,   z: 96,   dx: 0,  dz: 1,  dog: 'aspin' },
   { name: 'Peach',  color: 0xf4b183, x: -96,  z: 30,   dx: -1, dz: 0,  dog: null },
   // Outside the outer ring.
-  { name: 'Gold',   color: 0xd6a520, x: 143,  z: -70,  dx: -1, dz: 0,  dog: 'giant' },
+  { name: 'Gold',   color: 0xd6a520, x: 143,  z: -70,  dx: -1, dz: 0,  dog: 'greatDane' },
   { name: 'Mint',   color: 0x7fd8b0, x: 143,  z: 70,   dx: -1, dz: 0,  dog: null },
-  { name: 'Rose',   color: 0xd85a7f, x: 70,   z: 143,  dx: 0,  dz: -1, dog: 'small' },
-  { name: 'Sky',    color: 0x6cc6ff, x: -70,  z: 143,  dx: 0,  dz: -1, dog: 'big' },
+  { name: 'Rose',   color: 0xd85a7f, x: 70,   z: 143,  dx: 0,  dz: -1, dog: 'dachshund' },
+  { name: 'Sky',    color: 0x6cc6ff, x: -70,  z: 143,  dx: 0,  dz: -1, dog: 'husky' },
   { name: 'Lilac',  color: 0xb79ae0, x: -143, z: 70,   dx: 1,  dz: 0,  dog: null },
-  { name: 'Brown',  color: 0x9a6a45, x: -143, z: -70,  dx: 1,  dz: 0,  dog: 'giant' },
-  { name: 'Indigo', color: 0x5560c8, x: -70,  z: -143, dx: 0,  dz: 1,  dog: 'medium' },
+  { name: 'Brown',  color: 0x9a6a45, x: -143, z: -70,  dx: 1,  dz: 0,  dog: 'saintBernard' },
+  { name: 'Indigo', color: 0x5560c8, x: -70,  z: -143, dx: 0,  dz: 1,  dog: 'aspin' },
   { name: 'Cream',  color: 0xeadfba, x: 0,    z: -143, dx: 0,  dz: 1,  dog: null },
-  { name: 'Slate',  color: 0x6c7a89, x: 70,   z: -143, dx: 0,  dz: 1,  dog: 'giant' },
+  { name: 'Slate',  color: 0x6c7a89, x: 70,   z: -143, dx: 0,  dz: 1,  dog: 'mastiff' },
 ];
 
 function buildHouse(h) {
@@ -276,6 +276,13 @@ function showLotHome(l, level) {
 }
 LOTS.forEach(l => showLotHome(l, 0));
 
+// Undas candles on the graves, lit after dark.
+const candles = [];
+function candle(x, y, z) {
+  block(.12, .3, .12, 0xfff4d8, x, y + .15, z);
+  candles.push({ x, y: y + .4, z });
+}
+
 // The cemetery: a walled Filipino graveyard on the outer ring, with painted tombs on the ground
 // and apartment tombs stacked like cabinets. Parcels go to one grave near the far wall.
 // Built after the home sites and without rnd(), so it can't move anyone's home.
@@ -321,6 +328,7 @@ LOTS.forEach(l => showLotHome(l, 0));
           block(.3, .22, .3, 0xb7b2a6, px + nx * .18, y - .42, pz + nz * .18);
           block(.34, .3, .34, FLOWERS[(c + r) % FLOWERS.length], px + nx * .18, y - .18, pz + nz * .18);
         }
+        if (pick === 1 && r === 0) candle(px + nx * .3, .02, pz + nz * .3);
       }
     }
   };
@@ -343,15 +351,19 @@ LOTS.forEach(l => showLotHome(l, 0));
       if (style === 0) {
         block(1.9, .12, 2.8, 0xe6e1d6, tx, .76, tz);
         cross(tx, .8, tz - 1.1);
+        candle(tx - .4, .82, tz + .9);
+        candle(tx + .4, .82, tz + .9);
       } else if (style === 1) {
         // A small family tomb with its own roof.
         block(1.7, 1.3, 2.6, c, tx, 1.35, tz);
         block(2.2, .22, 3.1, 0x9fc6d9, tx, 2.1, tz);
         cross(tx, 2.2, tz);
+        candle(tx, .02, tz + 1.55);
       } else {
         // Two tombs stacked on the same plot.
         block(1.7, .7, 2.6, PAINT[(n + 2) % PAINT.length], tx, 1.08, tz);
         cross(tx, 1.43, tz - 1.1);
+        candle(tx, 1.43, tz + .8);
       }
       addCollider(tx, tz, .95, 1.4);
     }
@@ -362,6 +374,8 @@ LOTS.forEach(l => showLotHome(l, 0));
   block(1.9, .12, 2.8, 0xe6e1d6, 74.5, .76, 75.5);
   cross(74.5, .8, 74.4);
   block(.4, .3, .4, FLOWERS[0], 74.5, .96, 76.3);
+  candle(74, .82, 76.6);
+  candle(75, .82, 76.6);
   addCollider(74.5, 75.5, .95, 1.4);
 
   for (const [tx, tz] of [[106, 104], [106, 72], [76, 97]]) {
@@ -457,5 +471,12 @@ const poolMaterial = new THREE.MeshBasicMaterial({
 const lampPools = instanced(bulbs.map(b => ({ w: 13, h: 1, d: 13, color: 0xffffff, x: b.x, y: .16, z: b.z })),
   new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), poolMaterial, false);
 scene.add(lampGlow);
+const candleMaterial = new THREE.PointsMaterial({
+  map: glowTexture, size: 1.7, color: 0xffb65c, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0, fog: false,
+});
+const candleGlow = new THREE.Points(
+  new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(candles.flatMap(c => [c.x, c.y, c.z]), 3)),
+  candleMaterial);
+scene.add(candleGlow);
 
-export { ROADS, RING, OUTER, ROAD_W, EDGE, HUB, HUB_R, hubRing, HOUSES, YARD, LOTS, showLotHome, homeRing, TREES, wallMaterial, bulbMaterial, cloudMaterial, cloudMesh, glowMaterial, poolMaterial, lampGlow, lampPools };
+export { ROADS, RING, OUTER, ROAD_W, EDGE, HUB, HUB_R, hubRing, HOUSES, YARD, LOTS, showLotHome, homeRing, TREES, wallMaterial, bulbMaterial, cloudMaterial, cloudMesh, glowMaterial, poolMaterial, lampGlow, lampPools, candleMaterial, candleGlow };
