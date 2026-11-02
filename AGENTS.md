@@ -21,8 +21,10 @@ Imports only point up this list. There are no circular imports, so keep it that 
 | `world.js` | `ROADS`, `HOUSES`, `LOTS` (the seven home sites), trees, baking |
 | `daynight.js`, `player.js` | Day cycle, the player and their model |
 | `save.js` | `save`, `loadSave`, `rideStats` |
-| `orders.js`, `dogs.js` | Orders, then dogs, which damage carried orders |
-| `citizens.js`, `ghost.js` | Sidewalk walkers and their leashed dogs (`InstancedMesh`es), the White Lady |
+| `data/orderTypes.js`, `audio.js` | Order types, and `SOUNDS` with `play()` |
+| `orders.js`, `dogs.js` | Offers and orders, then dogs, which call `hurtOrders` |
+| `citizens.js`, `ghost.js` | Walkers, leashed dogs and pickleball players (`InstancedMesh`es), the White Lady |
+| `hub.js`, `board.js`, `contraband.js`, `police.js` | Conveyor, order board, night jobs, police |
 | `home.js` | Upgrade panel, `action`, mounting and parking vehicles |
 | `input.js`, `movement.js`, `camera.js` | Controls and per-frame movement |
 | `hud.js`, `minimap.js` | On-screen display |
@@ -39,6 +41,7 @@ its owner, because ES module exports are read-only to importers.
 - Keep draw calls near 100 in the phone setup (`?touch` in the URL). Check `renderer.info.render.calls`.
 - Vehicles auto-park at customer gates. That keeps the dog chase on foot, so don't remove it.
 - A new saved field needs a default and a check in `loadSave()` in `save.js`.
+- Only add sound clips with a confirmed free licence, and credit them in `assets/sfx/CREDITS.md`.
 - `main` is protected: changes go through a pull request.
 
 ## Checking changes
