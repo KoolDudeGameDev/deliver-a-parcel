@@ -7,6 +7,7 @@ import { scene, box, resolve } from './engine.js';
 import { HOUSES } from './world.js';
 import { limb, player } from './player.js';
 import { orders, hurtOrders } from './orders.js';
+import { play } from './audio.js';
 
 const alertTex = (() => {
   const c = document.createElement('canvas');
@@ -57,6 +58,7 @@ function bite(d) {
   view.shake = .35;
   d.cd = 1.2;
   hurtOrders(d.damage);
+  play('bite');
   toast(orders.length ? `${d.name} bit you! -${d.damage}%` : `${d.name} bit you!`);
 }
 
@@ -64,7 +66,10 @@ function updateDog(d, dt) {
   const y = d.house.yard, chasing = inYard(player.pos, y);
   // Too far off to make out, so not worth a dozen draw calls each.
   d.group.visible = Math.hypot(player.pos.x - d.pos.x, player.pos.z - d.pos.z) < 130;
-  if (chasing && !d.alert) toast('WOOF! Run!');
+  if (chasing && !d.alert) {
+    toast('WOOF! Run!');
+    play('bark');
+  }
   d.alert = chasing;
   d.mark.visible = chasing;
   d.cd -= dt;

@@ -11,6 +11,7 @@ import { clock } from './daynight.js';
 import { player } from './player.js';
 import { save, saveGame } from './save.js';
 import { hurtOrders } from './orders.js';
+import { play } from './audio.js';
 
 const INNER_WALKERS = 5, OUTER_WALKERS = 7, WALK_STRIDE = 3.2, DOG_EVERY = 3;
 const SOLID_R = 1, CARE_R = 55, SHOW_R = 130, RALLY_TIME = 1.1; // How close you bump into someone, and how far away they can go home unseen.
@@ -140,6 +141,7 @@ function hit(c, x, z, pace) {
   p.vz *= .45;
   p.stun = .15;
   view.shake = .3;
+  play('hit');
   if (c.end) {
     toast('Point!');
     return;

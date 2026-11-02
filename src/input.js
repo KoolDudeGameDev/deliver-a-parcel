@@ -3,6 +3,7 @@ import { $, clamp } from './util.js';
 import { view, controls, keys, stick } from './state.js';
 import { renderer } from './engine.js';
 import { dialogOpen, action } from './home.js';
+import { toggleMute } from './audio.js';
 
 let lastX = 0, lastY = 0;
 
@@ -11,6 +12,7 @@ addEventListener('keydown', e => {
   keys[e.code] = true;
   if (e.code === 'Space') { controls.wantJump = true; e.preventDefault(); }
   if (e.code === 'KeyE') action();
+  if (e.code === 'KeyM') toggleMute();
 });
 addEventListener('keyup', e => keys[e.code] = false);
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; });

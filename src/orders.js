@@ -9,6 +9,7 @@ import { ORDER_TYPES, ORDER_KEYS } from './data/orderTypes.js';
 import { HUB, HUB_R, hubRing, HOUSES } from './world.js';
 import { carryFood, carryParcel, player } from './player.js';
 import { save, saveGame, rideStats } from './save.js';
+import { play } from './audio.js';
 
 const orders = [];
 let lastHouse = null, offers = [], offersBorn = 0;
@@ -106,6 +107,7 @@ function acceptOffer(offer) {
   if (offerProblem(offer)) return false;
   lastHouse = offer.house;
   addOrder(offer);
+  play('order');
   toast(offer.food ? 'Hot food! Go go go!' : 'Parcel: heavy, so you move slower');
   return true;
 }
@@ -146,6 +148,7 @@ function updateOrder(dt) {
       // Rush orders run short on time by design, so the clock counts for less than the condition.
       const stars = clamp(Math.round(1 + 4 * (Math.min(1, o.left / o.max * 1.6) * .5 + o.fresh / 100 * .5)), 1, 5);
       if (!o.contraband) rate(stars);
+      play('tip');
       save.cash += total;
       save.delivered++;
       saveGame();

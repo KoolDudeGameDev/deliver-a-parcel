@@ -20,6 +20,7 @@ import { lady, updateGhost } from './ghost.js';
 import { updateHub } from './hub.js';
 import { dealer, buyer, nearDealer, takePackage, updateContraband } from './contraband.js';
 import { cars, updatePolice, arrest } from './police.js';
+import { sounds } from './audio.js';
 import './input.js';
 
 // Back home if there's a home to come back to. First timers get a name prompt, then a box.
@@ -52,7 +53,7 @@ renderer.setAnimationLoop(now => {
 
 // Handle for scripted checks from the console.
 window.game = {
-  player, dogs, citizens, lady, clock, dealer, buyer, nearDealer, takePackage, cars, arrest, colliders, ROADS, HOUSES, currentOffers, renewOffers, acceptOffer, offerProblem, renderer, walls, blocks,
+  player, dogs, citizens, sounds, lady, clock, dealer, buyer, nearDealer, takePackage, cars, arrest, colliders, ROADS, HOUSES, currentOffers, renewOffers, acceptOffer, offerProblem, renderer, walls, blocks,
   get dayTime() { return clock.time; }, set dayTime(v) { clock.time = v; },
   LOTS, HOMES, VEHICLES, DOG_TYPES, orders, save, action, actionSpot, capacity, rideStats,
   buyVehicle, buyPart, buyHome, setVehicle, claimLot, showHome, get order() { return orders[0]; }, get cash() { return save.cash; }, get delivered() { return save.delivered; },

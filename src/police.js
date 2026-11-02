@@ -11,6 +11,7 @@ import { save, saveGame } from './save.js';
 import { orders, clearOrders } from './orders.js';
 import { inYard } from './dogs.js';
 import { onLoop } from './citizens.js';
+import { play, setSiren } from './audio.js';
 
 const CATCH_R = 2.6, CAR_R = 1.5, SHOW_R = 140, GRACE = 6, LANE = 2.2;
 
@@ -43,6 +44,7 @@ function arrest() {
   grace = GRACE;
   for (const c of cars) c.mode = 'return';
   toast(`Arrested! -₱${lost}`);
+  play('arrest');
 }
 
 function updateCar(c, dt, wanted, playerHidden) {
@@ -94,6 +96,7 @@ function updatePolice(dt) {
   grace -= dt;
   const wanted = orders.some(o => o.contraband), playerHidden = HOUSES.some(h => inYard(player.pos, h.yard));
   for (const c of cars) updateCar(c, dt, wanted, playerHidden);
+  setSiren(cars.some(c => c.mode === 'chase'));
 }
 
 export { cars, updatePolice, arrest };
