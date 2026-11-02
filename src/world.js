@@ -82,16 +82,32 @@ for (const s of [-1, 1]) {
   block(2, 4, EDGE * 2 + 4, 0x3e8c4a, s * (EDGE + 1), 2, 0);
 }
 
-const HUB = new THREE.Vector3(0, 0, 3), HUB_R = 4.5;
+const HUB = new THREE.Vector3(0, 0, 3), HUB_R = 4.5, BELT_Z = -5.6, BELT_Y = 1.28, BELT_HALF = 10;
 {
   const plaza = new THREE.Mesh(new THREE.CylinderGeometry(15, 15, .1, 32), new THREE.MeshLambertMaterial({ color: 0xcfd3da }));
   plaza.position.y = .1;
   plaza.receiveShadow = !isTouch;
   scene.add(plaza);
-  walls.push({ w: 14, h: 6, d: 7, color: 0xff7a45, x: 0, y: 3, z: -9 });
-  block(15, .5, 3, 0xffffff, 0, 4.2, -4.8);
-  addCollider(0, -9, 7, 3.5);
-  sign(['ORDERS'], '#fff', '#d6402b', 8, 2, 0, 5.3, -5.4, 0);
+  // The orders building: a warehouse, open at the front, with a conveyor along the counter.
+  const ORANGE = 0xff7a45, STEEL = 0x6a6f78;
+  walls.push({ w: 22, h: 7, d: .6, color: ORANGE, x: 0, y: 3.5, z: -15 });
+  for (const s of [-1, 1]) {
+    walls.push({ w: .6, h: 7, d: 10, color: ORANGE, x: s * 11, y: 3.5, z: -10 });
+    // Boxes waiting inside.
+    for (const [ox, oz, y, c] of [[8, -13, .55, 0xb98a56], [6.6, -13.1, .55, 0xc99a5e], [7.4, -13, 1.45, 0xa87b4a], [8.6, -11.4, .55, 0xc99a5e]]) {
+      block(1.3, .9, 1.3, c, s * ox, y + .16, oz);
+    }
+  }
+  block(23, .5, 11, 0xe06a38, 0, 7.25, -10);
+  block(22, .06, 10, 0x9a9fa8, 0, .17, -10);
+  block(23, .8, .6, ORANGE, 0, 6.6, -5.1);
+  block(23, .22, 3, 0xffffff, 0, 6.1, -3.8);
+  addCollider(0, -10, 11, 5.1);
+  sign(['ORDERS'], '#fff', '#d6402b', 11, 2.8, 0, 8.9, -4.9, 0);
+
+  // Counter and belt frame. The moving belt itself is in hub.js.
+  block(BELT_HALF * 2 + .6, 1.1, 1.2, STEEL, 0, .7, BELT_Z);
+  for (const s of [-1, 1]) block(BELT_HALF * 2 + .6, .14, .12, 0xd6d9de, 0, BELT_Y + .05, BELT_Z + s * .5);
 }
 const hubRing = new THREE.Mesh(new THREE.RingGeometry(HUB_R - .5, HUB_R, 40),
   new THREE.MeshBasicMaterial({ color: 0x4dff88, side: THREE.DoubleSide, transparent: true, opacity: .8 }));
@@ -99,40 +115,48 @@ hubRing.rotation.x = -Math.PI / 2;
 hubRing.position.set(HUB.x, .2, HUB.z);
 scene.add(hubRing);
 
+// How big a customer's house and yard are. The yard size is half-widths: yardU across, yardV deep.
+const HOUSE_SIZES = {
+  small: { w: 10, d: 7.5, h: 5, floors: 1, yardU: 10.5, yardV: 11 },
+  medium: { w: 14, d: 9, h: 6, floors: 1, yardU: 13, yardV: 13 },
+  large: { w: 18, d: 10, h: 5.5, floors: 2, yardU: 16, yardV: 15 },
+};
+const ROAD_REACH = 23; // How far from a house's middle its path has to run to meet the road.
 const YARD = 13, GATE = 3.5, ROOF_COLORS = [0x8a4b38, 0x56606e, 0x6b3e2e, 0x4e6a58, 0x7c3f3f];
 const HOUSES = [
   // Around the inner ring.
   { name: 'Red',    color: 0xe0524d, x: -30,  z: -62,  dx: 0,  dz: 1,  dog: 'chihuahua' },
-  { name: 'Blue',   color: 0x4d8de0, x: 30,   z: -62,  dx: 0,  dz: 1,  dog: null },
+  { name: 'Blue',   color: 0x4d8de0, x: 30,   z: -62,  dx: 0,  dz: 1,  dog: null, size: 'large' },
   { name: 'Yellow', color: 0xe8c23c, x: 62,   z: -30,  dx: -1, dz: 0,  dog: 'beagle' },
   { name: 'Orange', color: 0xf0883a, x: 62,   z: 30,   dx: -1, dz: 0,  dog: null },
-  { name: 'Green',  color: 0x3fae68, x: 30,   z: 62,   dx: 0,  dz: -1, dog: null },
-  { name: 'Pink',   color: 0xe77fb3, x: -30,  z: 62,   dx: 0,  dz: -1, dog: 'shihTzu' },
+  { name: 'Green',  color: 0x3fae68, x: 30,   z: 62,   dx: 0,  dz: -1, dog: null, size: 'large' },
+  { name: 'Pink',   color: 0xe77fb3, x: -30,  z: 62,   dx: 0,  dz: -1, dog: 'shihTzu', size: 'small' },
   { name: 'Purple', color: 0x8d63d6, x: -62,  z: 30,   dx: 1,  dz: 0,  dog: null },
-  { name: 'Teal',   color: 0x2fb5a8, x: -62,  z: -30,  dx: 1,  dz: 0,  dog: 'pomeranian' },
+  { name: 'Teal',   color: 0x2fb5a8, x: -62,  z: -30,  dx: 1,  dz: 0,  dog: 'pomeranian', size: 'small' },
   // Just inside the outer ring, gates facing it.
-  { name: 'Coral',  color: 0xf0776a, x: -30,  z: -96,  dx: 0,  dz: -1, dog: null },
-  { name: 'Lime',   color: 0x9ccc3c, x: 96,   z: -30,  dx: 1,  dz: 0,  dog: 'germanShepherd' },
+  { name: 'Coral',  color: 0xf0776a, x: -30,  z: -96,  dx: 0,  dz: -1, dog: null, size: 'small' },
+  { name: 'Lime',   color: 0x9ccc3c, x: 96,   z: -30,  dx: 1,  dz: 0,  dog: 'germanShepherd', size: 'large' },
   { name: 'Navy',   color: 0x3a5a9a, x: 30,   z: 96,   dx: 0,  dz: 1,  dog: 'aspin' },
-  { name: 'Peach',  color: 0xf4b183, x: -96,  z: 30,   dx: -1, dz: 0,  dog: null },
+  { name: 'Peach',  color: 0xf4b183, x: -96,  z: 30,   dx: -1, dz: 0,  dog: null, size: 'small' },
   // Outside the outer ring.
-  { name: 'Gold',   color: 0xd6a520, x: 143,  z: -70,  dx: -1, dz: 0,  dog: 'greatDane' },
+  { name: 'Gold',   color: 0xd6a520, x: 143,  z: -70,  dx: -1, dz: 0,  dog: 'greatDane', size: 'large' },
   { name: 'Mint',   color: 0x7fd8b0, x: 143,  z: 70,   dx: -1, dz: 0,  dog: null },
-  { name: 'Rose',   color: 0xd85a7f, x: 70,   z: 143,  dx: 0,  dz: -1, dog: 'dachshund' },
-  { name: 'Sky',    color: 0x6cc6ff, x: -70,  z: 143,  dx: 0,  dz: -1, dog: 'husky' },
-  { name: 'Lilac',  color: 0xb79ae0, x: -143, z: 70,   dx: 1,  dz: 0,  dog: null },
-  { name: 'Brown',  color: 0x9a6a45, x: -143, z: -70,  dx: 1,  dz: 0,  dog: 'saintBernard' },
+  { name: 'Rose',   color: 0xd85a7f, x: 70,   z: 143,  dx: 0,  dz: -1, dog: 'dachshund', size: 'small' },
+  { name: 'Sky',    color: 0x6cc6ff, x: -70,  z: 143,  dx: 0,  dz: -1, dog: 'husky', size: 'large' },
+  { name: 'Lilac',  color: 0xb79ae0, x: -143, z: 70,   dx: 1,  dz: 0,  dog: null, size: 'small' },
+  { name: 'Brown',  color: 0x9a6a45, x: -143, z: -70,  dx: 1,  dz: 0,  dog: 'saintBernard', size: 'large' },
   { name: 'Indigo', color: 0x5560c8, x: -70,  z: -143, dx: 0,  dz: 1,  dog: 'aspin' },
   { name: 'Cream',  color: 0xeadfba, x: 0,    z: -143, dx: 0,  dz: 1,  dog: null },
-  { name: 'Slate',  color: 0x6c7a89, x: 70,   z: -143, dx: 0,  dz: 1,  dog: 'mastiff' },
+  { name: 'Slate',  color: 0x6c7a89, x: 70,   z: -143, dx: 0,  dz: 1,  dog: 'mastiff', size: 'large' },
 ];
 
 function buildHouse(h) {
   // Local coords: v points from the house towards the road, u runs across the yard.
   const px = h.dz, pz = -h.dx;
   const at = (u, v) => [h.x + h.dx * v + px * u, h.z + h.dz * v + pz * u];
-  const face = Math.atan2(h.dx, h.dz);
-  h.yard = { x0: h.x - YARD, x1: h.x + YARD, z0: h.z - YARD, z1: h.z + YARD };
+  const face = Math.atan2(h.dx, h.dz), size = HOUSE_SIZES[h.size || 'medium'], U = size.yardU, V = size.yardV;
+  const sideways = Math.abs(h.dx), upright = Math.abs(h.dz), halfX = upright * U + sideways * V, halfZ = sideways * U + upright * V;
+  h.yard = { x0: h.x - halfX, x1: h.x + halfX, z0: h.z - halfZ, z1: h.z + halfZ };
 
   const fence = (u0, v0, u1, v1) => {
     const [ax, az] = at(u0, v0), [bx, bz] = at(u1, v1);
@@ -141,39 +165,40 @@ function buildHouse(h) {
     block(w, 2, d, 0xf3efe4, mx, 1, mz);
     addCollider(mx, mz, w / 2, d / 2);
   };
-  fence(-YARD, -YARD, YARD, -YARD);
-  fence(-YARD, -YARD, -YARD, YARD);
-  fence(YARD, -YARD, YARD, YARD);
-  fence(-YARD, YARD, -GATE, YARD);
-  fence(GATE, YARD, YARD, YARD);
+  fence(-U, -V, U, -V);
+  fence(-U, -V, -U, V);
+  fence(U, -V, U, V);
+  fence(-U, V, -GATE, V);
+  fence(GATE, V, U, V);
 
   // Gate arch, so the way in reads from the road.
   for (const s of [-1, 1]) {
-    const [x, z] = at(s * GATE, YARD);
+    const [x, z] = at(s * GATE, V);
     block(.6, 4, .6, h.color, x, 2, z);
   }
-  const [gx, gz] = at(0, YARD);
-  block(Math.abs(h.dz) * (GATE * 2 + .6) + .6 * Math.abs(h.dx), .5, Math.abs(h.dx) * (GATE * 2 + .6) + .6 * Math.abs(h.dz), h.color, gx, 4, gz);
+  const [gx, gz] = at(0, V);
+  block(upright * (GATE * 2 + .6) + .6 * sideways, .5, sideways * (GATE * 2 + .6) + .6 * upright, h.color, gx, 4, gz);
 
-  // House body, roof, door.
-  const [hx, hz] = at(0, -YARD + 6);
-  const bw = Math.abs(h.dz) * 14 + Math.abs(h.dx) * 9, bd = Math.abs(h.dx) * 14 + Math.abs(h.dz) * 9;
-  walls.push({ w: bw, h: 6, d: bd, color: h.color, x: hx, y: 3, z: hz });
+  // House body, roof, door, set near the back of the yard.
+  const back = -V + 1.5, [hx, hz] = at(0, back + size.d / 2);
+  const bw = upright * size.w + sideways * size.d, bd = sideways * size.w + upright * size.d;
+  for (let f = 0; f < size.floors; f++) walls.push({ w: bw, h: size.h, d: bd, color: h.color, x: hx, y: size.h * (f + .5), z: hz });
   addCollider(hx, hz, bw / 2, bd / 2);
-  roofs.push({ w: bw + 1.4, h: 4, d: bd + 1.4, color: ROOF_COLORS[roofs.length % ROOF_COLORS.length], x: hx, y: 8, z: hz });
-  const [dx, dz] = at(0, -YARD + 10.6);
-  block(Math.abs(h.dz) * 2 + Math.abs(h.dx) * .3, 3.4, Math.abs(h.dx) * 2 + Math.abs(h.dz) * .3, 0x5a3a28, dx, 1.7, dz);
+  const top = size.h * size.floors;
+  roofs.push({ w: bw + 1.4, h: 4, d: bd + 1.4, color: ROOF_COLORS[roofs.length % ROOF_COLORS.length], x: hx, y: top + 2, z: hz });
+  const doorV = back + size.d + .1, [dx, dz] = at(0, doorV);
+  block(upright * 2 + sideways * .3, 3.4, sideways * 2 + upright * .3, 0x5a3a28, dx, 1.7, dz);
 
-  const [sx, sz] = at(0, -YARD + 12.2);
+  const [sx, sz] = at(0, doorV + 1.6);
   h.step = new THREE.Vector3(sx, 0, sz);
-  block(Math.abs(h.dz) * 4 + Math.abs(h.dx) * 2.2, .12, Math.abs(h.dx) * 4 + Math.abs(h.dz) * 2.2, 0xbdb8aa, sx, .08, sz);
+  block(upright * 4 + sideways * 2.2, .12, sideways * 4 + upright * 2.2, 0xbdb8aa, sx, .08, sz);
 
   // Path from the road, through the gate, up to the doorstep.
-  const [p0x, p0z] = at(0, -YARD + 13), [p1x, p1z] = at(0, YARD + 10);
-  block(Math.abs(h.dz) * 5 + Math.abs(p1x - p0x), .06, Math.abs(h.dx) * 5 + Math.abs(p1z - p0z), PATH, (p0x + p1x) / 2, .02, (p0z + p1z) / 2);
+  const [p0x, p0z] = at(0, doorV + 2.4), [p1x, p1z] = at(0, ROAD_REACH);
+  block(upright * 5 + Math.abs(p1x - p0x), .06, sideways * 5 + Math.abs(p1z - p0z), PATH, (p0x + p1x) / 2, .02, (p0z + p1z) / 2);
 
   if (h.dog) {
-    const [ax, az] = at(5.5, YARD + 1.2);
+    const [ax, az] = at(5.5, V + 1.2);
     block(.25, 2.3, .25, 0x7a5a3c, ax, 1.15, az);
     sign(['BEWARE', 'OF DOG'], '#ffd23f', '#222', 3, 1.5, ax, 2.7, az, face);
   }
@@ -253,25 +278,27 @@ for (let i = 0; i < 20000 && LOTS.length < 7; i++) {
   const x = Math.round((rnd() - .5) * (EDGE * 2 - 32)), z = Math.round((rnd() - .5) * (EDGE * 2 - 32));
   if (isTaken(x, z, 6) || onRoad(x, z, 15) || LOTS.some(l => Math.hypot(l.x - x, l.z - z) < 60)) continue;
   const dx = Math.abs(x) > Math.abs(z) ? -Math.sign(x) : 0, dz = dx ? 0 : -Math.sign(z);
-  const l = { name: `Home ${LOTS.length + 1}`, x, z, dx, dz, step: new THREE.Vector3(x + dx * 8, 0, z + dz * 8) };
-  block(dx ? 18 : 24, .05, dx ? 24 : 18, 0xb9a27a, x, .03, z);
-  taken.push([x, z, 14]);
+  const l = { name: `Home ${LOTS.length + 1}`, x, z, dx, dz, step: new THREE.Vector3(x + dx * 10, 0, z + dz * 10) };
+  block(dx ? 28 : 40, .05, dx ? 40 : 28, 0xb9a27a, x, .03, z);
+  // Bigger than the check above needs, for the mansion. Sites are 60 apart, so it can't move one.
+  taken.push([x, z, 20]);
   l.collider = { x0: x, x1: x, z0: z, z1: z };
   colliders.push(l.collider);
   l.group = new THREE.Group();
   l.group.position.set(x, 0, z);
   l.group.rotation.y = Math.atan2(dx, dz);
   scene.add(l.group);
-  const sx = x + dx * 7 + dz * 5.5, sz = z + dz * 7 - dx * 5.5;
+  const sx = x + dx * 9 + dz * 6, sz = z + dz * 9 - dx * 6;
   block(.25, 2.4, .25, 0x7a5a3c, sx, 1.2, sz);
   l.signMaterial = sign([l.name.toUpperCase(), 'OPEN'], '#fff', '#222', 3.2, 1.6, sx, 3.2, sz, Math.atan2(dx, dz));
   LOTS.push(l);
 }
 
 function showLotHome(l, level) {
-  const home = HOMES[level], [w, d] = l.dx ? [...home.size].reverse() : home.size;
+  const home = HOMES[level], [w, d] = (l.dx ? [...home.size].reverse() : home.size).map(n => n * home.scale);
   l.group.clear();
   home.model(l.group);
+  l.group.scale.setScalar(home.scale);
   Object.assign(l.collider, { x0: l.x - w, x1: l.x + w, z0: l.z - d, z1: l.z + d });
 }
 LOTS.forEach(l => showLotHome(l, 0));
@@ -479,4 +506,4 @@ const candleGlow = new THREE.Points(
   candleMaterial);
 scene.add(candleGlow);
 
-export { ROADS, RING, OUTER, ROAD_W, EDGE, HUB, HUB_R, hubRing, HOUSES, YARD, LOTS, showLotHome, homeRing, TREES, wallMaterial, bulbMaterial, cloudMaterial, cloudMesh, glowMaterial, poolMaterial, lampGlow, lampPools, candleMaterial, candleGlow };
+export { ROADS, RING, OUTER, ROAD_W, EDGE, HUB, HUB_R, BELT_Z, BELT_Y, BELT_HALF, hubRing, HOUSES, YARD, LOTS, showLotHome, homeRing, TREES, wallMaterial, bulbMaterial, cloudMaterial, cloudMesh, glowMaterial, poolMaterial, lampGlow, lampPools, candleMaterial, candleGlow };

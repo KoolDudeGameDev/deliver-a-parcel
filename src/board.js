@@ -1,6 +1,7 @@
 // The order board at the hub: a few offers to choose from, so every trip starts with a decision.
 import { $ } from './util.js';
 import { keys } from './state.js';
+import { sendBox } from './hub.js';
 import { orders, capacity, currentOffers, acceptOffer, offerProblem, starText, renewOffers } from './orders.js';
 
 const boardBox = $('boardBox');
@@ -17,7 +18,7 @@ function renderBoard() {
     button.textContent = 'Take';
     button.disabled = !!problem;
     button.onclick = () => {
-      acceptOffer(offer);
+      if (acceptOffer(offer)) sendBox(offer.food);
       renewOffers();
       boardBox.close();
     };
