@@ -30,7 +30,7 @@ function updateHud(now) {
   const ahead = dx * -s + dz * -c, right = dx * c + dz * -s;
   $('arrow').style.transform = `rotate(${Math.atan2(right, ahead)}rad)`;
   $('dist').textContent = `${Math.round(Math.hypot(dx, dz))}m`;
-  $('orderName').textContent = `${o.food ? 'Food' : 'Parcel'} to ${o.house.name} house`;
+  $('orderName').textContent = `${o.food ? 'Food' : 'Parcel'} to ${o.house.place || `${o.house.name} house`}`;
   $('freshLabel').textContent = o.food ? 'Freshness' : 'Condition';
   $('timeLeft').textContent = `${Math.ceil(o.left)}s`;
   $('timeBar').firstElementChild.style.transform = `scaleX(${o.left / o.max})`;
