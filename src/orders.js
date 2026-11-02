@@ -10,6 +10,7 @@ import { HUB, HUB_R, hubRing, HOUSES } from './world.js';
 import { carryFood, carryParcel, player } from './player.js';
 import { save, saveGame, rideStats } from './save.js';
 import { play } from './audio.js';
+import { eventBonus } from './events.js';
 import { countGoal, streakBonus, growStreak, breakStreak, isRegular, regularBonus, visit } from './goals.js';
 
 const orders = [];
@@ -147,7 +148,7 @@ function updateOrder(dt) {
       // A shady job already pays well for the risk, so it gets no tip or night bonus on top.
       const tip = o.contraband ? 0 : Math.round(o.pay * TIP_MAX * (o.left / o.max) * (o.fresh / 100));
       const night = !o.contraband && clock.night > .5;
-      const bonus = 1 + HOMES[save.homeLevel].bonus + regularBonus(o.house) + streakBonus();
+      const bonus = 1 + HOMES[save.homeLevel].bonus + regularBonus(o.house) + streakBonus() + eventBonus(o);
       const total = Math.round((o.pay + tip) * bonus * (night ? NIGHT_PAY : 1));
       // Rush orders run short on time by design, so the clock counts for less than the condition.
       const stars = clamp(Math.round(1 + 4 * (Math.min(1, o.left / o.max * 1.6) * .5 + o.fresh / 100 * .5)), 1, 5);

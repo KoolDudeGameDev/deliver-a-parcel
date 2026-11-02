@@ -1,6 +1,6 @@
 // Moves the player each frame.
 import { clamp } from './util.js';
-import { view, controls, keys, stick } from './state.js';
+import { view, controls, keys, stick, weather } from './state.js';
 import { RUN, SPRINT, RIDE_SPRINT, PARCEL_SLOW, JUMP_V, GRAVITY } from './config.js';
 import { sun, resolve } from './engine.js';
 import { EDGE, HOUSES } from './world.js';
@@ -41,7 +41,7 @@ function movePlayer(dt) {
   // On a phone the left thumb also steers the camera a little, so you can play one-handed.
   if (stick.id !== null && controls.lookId === null) view.yaw -= ix * 1.1 * dt;
 
-  const s = Math.sin(view.yaw), c = Math.cos(view.yaw), grip = Math.min(1, (ride ? ride.accel : 30) * dt);
+  const s = Math.sin(view.yaw), c = Math.cos(view.yaw), grip = Math.min(1, (ride ? ride.accel * weather.grip : 30) * dt);
   p.vx += ((-s * iz + c * ix) * speed - p.vx) * grip;
   p.vz += ((-c * iz - s * ix) * speed - p.vz) * grip;
   const pace = Math.hypot(p.vx, p.vz);

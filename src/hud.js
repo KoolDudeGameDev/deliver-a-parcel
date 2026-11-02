@@ -10,6 +10,7 @@ import { orders, capacity, nearestOrder, beamMaterial } from './orders.js';
 import { affordable } from './home.js';
 import { actionSpot } from './actions.js';
 import { streakBonus } from './goals.js';
+import { eventText } from './events.js';
 
 $('nightTag').textContent = `Night pay +${Math.round((NIGHT_PAY - 1) * 100)}%`;
 
@@ -20,6 +21,7 @@ function updateHud(now) {
   $('nightTag').style.visibility = clock.night > .5 ? 'visible' : 'hidden';
   $('ratingTag').textContent = save.ratingCount ? `★ ${(save.ratingSum / save.ratingCount).toFixed(1)} rating` : '';
   $('streakTag').textContent = save.streak >= 2 ? `Streak ${save.streak}, +${Math.round(streakBonus() * 100)}% pay` : '';
+  $('eventTag').textContent = eventText();
   const spot = actionSpot();
   $('btnAction').classList.toggle('ready', !!spot);
   $('btnAction').textContent = spot || 'ACTION';

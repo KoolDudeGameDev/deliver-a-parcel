@@ -1,5 +1,5 @@
 // Starts the game and runs the frame loop.
-import { view } from './state.js';
+import { view, weather } from './state.js';
 import { DOG_TYPES } from './config.js';
 import { renderer, scene, camera, blocks, walls, colliders } from './engine.js';
 import { VEHICLES } from './data/vehicles.js';
@@ -19,6 +19,8 @@ import { updateMini } from './minimap.js';
 import { citizens, updateCitizens } from './citizens.js';
 import { lady, updateGhost } from './ghost.js';
 import { updateHub } from './hub.js';
+import { updateEvents, startEvent } from './events.js';
+import { rides, updateTraffic } from './traffic.js';
 import { currentGoals, countGoal } from './goals.js';
 import { dealer, buyer, nearDealer, takePackage, updateContraband } from './contraband.js';
 import { cars, updatePolice, arrest } from './police.js';
@@ -44,6 +46,8 @@ renderer.setAnimationLoop(now => {
   updateCitizens(dt);
   updateGhost(dt);
   updateHub(dt);
+  updateEvents(dt);
+  updateTraffic(dt);
   updateContraband(dt);
   updatePolice(dt);
   updateOrder(dt);
@@ -59,7 +63,7 @@ window.game = {
   player, dogs, citizens, sounds, lady, clock, dealer, buyer, nearDealer, takePackage, cars, arrest, colliders, ROADS, HOUSES, currentOffers, renewOffers, acceptOffer, offerProblem, renderer, walls, blocks,
   get dayTime() { return clock.time; }, set dayTime(v) { clock.time = v; },
   LOTS, HOMES, VEHICLES, DOG_TYPES, orders, save, action, actionSpot, capacity, rideStats,
-  currentGoals, countGoal, buyVehicle, buyPart, buyHome, buyPaint, buyDecor, setVehicle, claimLot, showHome, get order() { return orders[0]; }, get cash() { return save.cash; }, get delivered() { return save.delivered; },
+  startEvent, weather, rides, currentGoals, countGoal, buyVehicle, buyPart, buyHome, buyPaint, buyDecor, setVehicle, claimLot, showHome, get order() { return orders[0]; }, get cash() { return save.cash; }, get delivered() { return save.delivered; },
   get parked() { return parked; },
   get yaw() { return view.yaw; }, set yaw(v) { view.yaw = v; },
 };
