@@ -1,8 +1,9 @@
 // The map: roads, houses, home sites, trees and decoration, then baked into a few draw calls.
 import * as THREE from 'three';
 import { isTouch } from './util.js';
-import { scene, colliders, solids, blocks, walls, roofs, bulbs, block, instanced, canvasTexture, speckle, addCollider, sign } from './engine.js';
+import { scene, colliders, solids, blocks, walls, roofs, bulbs, block, instanced, canvasTexture, speckle, addCollider, sign, distant } from './engine.js';
 import { HOMES } from './data/homes.js';
+import { DOG_BREEDS } from './config.js';
 
 {
   const t = canvasTexture(128, 128, x => {
@@ -134,19 +135,19 @@ const HOUSES = [
   { name: 'Purple', color: 0x8d63d6, x: -62,  z: 30,   dx: 1,  dz: 0,  dog: null },
   { name: 'Teal',   color: 0x2fb5a8, x: -62,  z: -30,  dx: 1,  dz: 0,  dog: 'pomeranian', size: 'small' },
   // Just inside the outer ring, gates facing it.
-  { name: 'Coral',  color: 0xf0776a, x: -30,  z: -96,  dx: 0,  dz: -1, dog: null, size: 'small' },
+  { name: 'Coral',  color: 0xf0776a, x: -30,  z: -96,  dx: 0,  dz: -1, dog: 'cat', size: 'small' },
   { name: 'Lime',   color: 0x9ccc3c, x: 96,   z: -30,  dx: 1,  dz: 0,  dog: 'germanShepherd', size: 'large' },
   { name: 'Navy',   color: 0x3a5a9a, x: 30,   z: 96,   dx: 0,  dz: 1,  dog: 'aspin' },
   { name: 'Peach',  color: 0xf4b183, x: -96,  z: 30,   dx: -1, dz: 0,  dog: null, size: 'small' },
   // Outside the outer ring.
   { name: 'Gold',   color: 0xd6a520, x: 143,  z: -70,  dx: -1, dz: 0,  dog: 'greatDane', size: 'large' },
-  { name: 'Mint',   color: 0x7fd8b0, x: 143,  z: 70,   dx: -1, dz: 0,  dog: null },
+  { name: 'Mint',   color: 0x7fd8b0, x: 143,  z: 70,   dx: -1, dz: 0,  dog: 'cat' },
   { name: 'Rose',   color: 0xd85a7f, x: 70,   z: 143,  dx: 0,  dz: -1, dog: 'dachshund', size: 'small' },
   { name: 'Sky',    color: 0x6cc6ff, x: -70,  z: 143,  dx: 0,  dz: -1, dog: 'husky', size: 'large' },
-  { name: 'Lilac',  color: 0xb79ae0, x: -143, z: 70,   dx: 1,  dz: 0,  dog: null, size: 'small' },
+  { name: 'Lilac',  color: 0xb79ae0, x: -143, z: 70,   dx: 1,  dz: 0,  dog: 'goose', size: 'small' },
   { name: 'Brown',  color: 0x9a6a45, x: -143, z: -70,  dx: 1,  dz: 0,  dog: 'saintBernard', size: 'large' },
   { name: 'Indigo', color: 0x5560c8, x: -70,  z: -143, dx: 0,  dz: 1,  dog: 'aspin' },
-  { name: 'Cream',  color: 0xeadfba, x: 0,    z: -143, dx: 0,  dz: 1,  dog: null },
+  { name: 'Cream',  color: 0xeadfba, x: 0,    z: -143, dx: 0,  dz: 1,  dog: 'goose' },
   { name: 'Slate',  color: 0x6c7a89, x: 70,   z: -143, dx: 0,  dz: 1,  dog: 'mastiff', size: 'large' },
 ];
 
@@ -200,7 +201,7 @@ function buildHouse(h) {
   if (h.dog) {
     const [ax, az] = at(5.5, V + 1.2);
     block(.25, 2.3, .25, 0x7a5a3c, ax, 1.15, az);
-    sign(['BEWARE', 'OF DOG'], '#ffd23f', '#222', 3, 1.5, ax, 2.7, az, face);
+    sign(DOG_BREEDS[h.dog].sign ?? ['BEWARE', 'OF DOG'], '#ffd23f', '#222', 3, 1.5, ax, 2.7, az, face);
   }
 }
 HOUSES.forEach(buildHouse);
@@ -288,16 +289,21 @@ for (let i = 0; i < 20000 && LOTS.length < 7; i++) {
   l.group.position.set(x, 0, z);
   l.group.rotation.y = Math.atan2(dx, dz);
   scene.add(l.group);
+  l.decor = new THREE.Group();
+  l.decor.position.copy(l.group.position);
+  l.decor.rotation.y = l.group.rotation.y;
+  scene.add(l.decor);
+  distant.push({ object: l.group, reach: 150 }, { object: l.decor, reach: 110 });
   const sx = x + dx * 9 + dz * 6, sz = z + dz * 9 - dx * 6;
   block(.25, 2.4, .25, 0x7a5a3c, sx, 1.2, sz);
   l.signMaterial = sign([l.name.toUpperCase(), 'OPEN'], '#fff', '#222', 3.2, 1.6, sx, 3.2, sz, Math.atan2(dx, dz));
   LOTS.push(l);
 }
 
-function showLotHome(l, level) {
+function showLotHome(l, level, paint) {
   const home = HOMES[level], [w, d] = (l.dx ? [...home.size].reverse() : home.size).map(n => n * home.scale);
   l.group.clear();
-  home.model(l.group);
+  home.model(l.group, paint ?? undefined);
   l.group.scale.setScalar(home.scale);
   Object.assign(l.collider, { x0: l.x - w, x1: l.x + w, z0: l.z - d, z1: l.z + d });
 }
@@ -420,6 +426,37 @@ function candle(x, y, z) {
   });
 }
 
+// The vehicle dealer and the mechanic, either side of the hub, so upgrades are never far away.
+function addShop(x, z, color, label, ringColor) {
+  walls.push({ w: 15, h: 6, d: 10, color, x, y: 3, z });
+  block(16, .4, 11, 0x3a3f48, x, 6.2, z);
+  block(16, .7, .6, color, x, 5.5, z - 5.2);
+  addCollider(x, z, 7.5, 5);
+  sign([label], '#fff', '#222', 10, 2.4, x, 7.8, z - 5.2, 0);
+  taken.push([x, z, 11]);
+  const step = new THREE.Vector3(x, 0, z - 8.4);
+  const ring = new THREE.Mesh(ringGeometry, new THREE.MeshBasicMaterial({ color: ringColor, transparent: true, opacity: .8, side: THREE.DoubleSide, toneMapped: false }));
+  ring.position.set(step.x, .2, step.z);
+  scene.add(ring);
+  return { x, z, step, ringColor };
+}
+const SHOPS = {
+  dealer: addShop(-19, 19, 0x3f7fd6, 'DEALER', 0xffa23f),
+  mechanic: addShop(19, 19, 0x6a6f78, 'MECHANIC', 0x35d8c8),
+};
+{
+  // A showroom window and a bike on display at the dealer.
+  const { x, z } = SHOPS.dealer;
+  block(12, 3.4, .2, 0x9fd0ea, x, 2.1, z - 5.02);
+  block(2.2, .4, 2.2, 0xd6d9de, x - 5, .2, z - 7);
+  block(.3, .5, 1.5, 0xe0443a, x - 5, .75, z - 7);
+  // A roller door, tyres and a toolbox at the mechanic.
+  const m = SHOPS.mechanic;
+  block(9, 4.2, .2, 0x4a505a, m.x - 1.5, 2.1, m.z - 5.02);
+  for (let y = 0; y < 4; y++) block(1.1, .36, 1.1, 0x1f1f22, m.x + 5.6, .2 + y * .38, m.z - 6.2);
+  block(1.6, 1.2, .8, 0xd6402b, m.x - 6, .6, m.z - 6);
+}
+
 // A pickleball court where the match never ends. The players are in citizens.js.
 const COURT = { x: -92, z: 90, half: 8 };
 {
@@ -434,15 +471,21 @@ const COURT = { x: -92, z: 90, half: 8 };
   taken.push([x, z, 15]);
 }
 
-// Somewhere open and off the road, a random distance from a point. Uses Math.random, not rnd().
-function clearSpot(fromX, fromZ, near, far) {
-  for (let i = 0; i < 300; i++) {
-    const a = Math.random() * Math.PI * 2, d = near + Math.random() * (far - near);
-    const x = fromX + Math.cos(a) * d, z = fromZ + Math.sin(a) * d;
-    if (Math.abs(x) > EDGE - 8 || Math.abs(z) > EDGE - 8 || Math.hypot(x, z) < 20) continue;
-    if (!isTaken(x, z, 2) && !onRoad(x, z, 3) && !TREES.some(([tx, tz]) => Math.hypot(x - tx, z - tz) < 6)) return [x, z];
+// A random open spot anywhere on the map, off the road and at least `near` away from a point.
+// Uses Math.random, not rnd(). If none turns up, it settles for the farthest open spot it saw.
+function clearSpot(fromX, fromZ, near) {
+  let best = null, bestDistance = -1;
+  for (let i = 0; i < 400; i++) {
+    const x = (Math.random() - .5) * (EDGE * 2 - 16), z = (Math.random() - .5) * (EDGE * 2 - 16);
+    if (Math.hypot(x, z) < 20 || isTaken(x, z, 2) || onRoad(x, z, 3) || TREES.some(([tx, tz]) => Math.hypot(x - tx, z - tz) < 6)) continue;
+    const distance = Math.hypot(x - fromX, z - fromZ);
+    if (distance >= near) return [x, z];
+    if (distance > bestDistance) {
+      best = [x, z];
+      bestDistance = distance;
+    }
   }
-  return [-30, 30]; // Grass inside the inner ring, for the rare time nothing else turns up.
+  return best ?? [-30, 30];
 }
 
 const TREE_LEAVES = [0x3f9b52, 0x358a48, 0x4caf5f, 0x2f7f45];
@@ -531,4 +574,4 @@ const candleGlow = new THREE.Points(
   candleMaterial);
 scene.add(candleGlow);
 
-export { ROADS, RING, OUTER, ROAD_W, EDGE, COURT, clearSpot, HUB, HUB_R, BELT_Z, BELT_Y, BELT_HALF, hubRing, HOUSES, YARD, LOTS, showLotHome, homeRing, TREES, wallMaterial, bulbMaterial, cloudMaterial, cloudMesh, glowMaterial, poolMaterial, lampGlow, lampPools, candleMaterial, candleGlow };
+export { ROADS, RING, OUTER, ROAD_W, EDGE, COURT, clearSpot, HUB, HUB_R, BELT_Z, BELT_Y, BELT_HALF, hubRing, SHOPS, HOUSES, YARD, LOTS, showLotHome, homeRing, TREES, wallMaterial, bulbMaterial, cloudMaterial, cloudMesh, glowMaterial, poolMaterial, lampGlow, lampPools, candleMaterial, candleGlow };

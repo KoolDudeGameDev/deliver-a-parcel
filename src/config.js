@@ -1,11 +1,15 @@
 // Tuning numbers for the player, orders and dogs. Everything worth playing with lives here.
 
+const MULTIPLAYER_URL = ''; // The server's wss:// address once it's deployed. Empty means single-player.
 const RUN = 6, SPRINT = 9.5, RIDE_SPRINT = 1.35, PARCEL_SLOW = 0.75, JUMP_V = 9, GRAVITY = 26;
 const FOOD_TIME = 8, PARCEL_TIME = 14, FOOD_PAY = 30, PARCEL_PAY = 25, FAR_PAY = .4, NIGHT_PAY = 1.15;
-const STAR_PAY = .2, OFFER_COUNT = 3, OFFER_LIFE = 30; // Pay per difficulty star, and how the board refreshes.
+const STAR_PAY = .12, TIP_MAX = .6, OFFER_COUNT = 3, OFFER_LIFE = 30; // Pay per difficulty star, and how the board refreshes.
+const GOAL_COUNT = 3, STREAK_STEP = .02, STREAK_MAX = .2, REGULAR_VISITS = 3, REGULAR_BONUS = .1; // Reasons to come back.
+const RAIN_GRIP = .55, RAIN_PAY = .1, FIESTA_PAY = .25, UNDAS_PAY = .5; // What events do.
 const HIT_SPEED = 7, HIT_FINE = 15, HIT_DAMAGE = 10; // Hitting a citizen: speed it takes, cost, order damage.
 const GHOST_SPEED = 3.4, GHOST_DAMAGE = 40;
-const CONTRABAND_PAY = 170, CONTRABAND_FAR_PAY = .8, ARREST_COST = .25; // Night jobs: pay, and what an arrest takes.
+const DEALER_MIN = 90, BUYER_MIN = 120; // How far a dealer spawns from you, and a buyer from the dealer.
+const CONTRABAND_PAY = 130, CONTRABAND_FAR_PAY = .6, ARREST_COST = .25; // Night jobs: pay, and what an arrest takes.
 // Police speeds, then how close they spot you, how far you must get, and for how many seconds.
 const POLICE_PATROL = 8, POLICE_CHASE = 19, POLICE_SEE = 32, POLICE_LOSE = 55, POLICE_GIVE_UP = 3;
 const DOG_TYPES = {
@@ -19,7 +23,7 @@ const DOG_TYPES = {
 // A size sets how a dog plays, and a breed sets how it looks. A new breed is one more row, then
 // give it to a house in world.js. coat is the main colour, and the rest are optional: mark is the
 // patch on its back, muzzle its nose, ears 'up' or 'flop', tail 'up', 'curl' or 'long', len and
-// legs stretch its body and legs, and fluffy bulks it out.
+// legs stretch its body and legs, fluffy bulks it out, call is what it shouts, and sign is the yard's.
 const DOG_BREEDS = {
   chihuahua: { name: 'Chihuahua', size: 'tiny', coat: 0xe8d0a9, ears: 'up', legs: 1.1, tail: 'up' },
   pomeranian: { name: 'Pomeranian', size: 'tiny', coat: 0xe89a4a, ears: 'up', fluffy: true, len: .8, tail: 'curl' },
@@ -31,7 +35,9 @@ const DOG_BREEDS = {
   husky: { name: 'Husky', size: 'big', coat: 0xdfe4ea, mark: 0x4f5560, ears: 'up', fluffy: true, tail: 'curl' },
   greatDane: { name: 'Great Dane', size: 'giant', coat: 0x8f7f6e, muzzle: 0x1f1c1a, ears: 'flop', legs: 1.35, len: 1.1, tail: 'long' },
   saintBernard: { name: 'Saint Bernard', size: 'giant', coat: 0xf1ece0, mark: 0x8a4a22, ears: 'flop', fluffy: true, tail: 'long' },
+  cat: { name: 'Angry cat', size: 'tiny', coat: 0x6b6f78, ears: 'up', tail: 'up', len: .9, call: 'HISS!', sign: ['BEWARE', 'OF CAT'] },
+  goose: { name: 'Goose', size: 'small', coat: 0xf4f2ea, shape: 'goose', call: 'HONK!', sign: ['BEWARE', 'OF GOOSE'] },
   mastiff: { name: 'Mastiff', size: 'giant', coat: 0x4a4038, muzzle: 0x141210, ears: 'flop', fluffy: true, legs: .95, tail: 'long' },
 };
 
-export { RUN, SPRINT, RIDE_SPRINT, PARCEL_SLOW, JUMP_V, GRAVITY, FOOD_TIME, PARCEL_TIME, FOOD_PAY, PARCEL_PAY, FAR_PAY, NIGHT_PAY, STAR_PAY, OFFER_COUNT, OFFER_LIFE, HIT_SPEED, HIT_FINE, HIT_DAMAGE, GHOST_SPEED, GHOST_DAMAGE, CONTRABAND_PAY, CONTRABAND_FAR_PAY, ARREST_COST, POLICE_PATROL, POLICE_CHASE, POLICE_SEE, POLICE_LOSE, POLICE_GIVE_UP, DOG_TYPES, DOG_BREEDS };
+export { MULTIPLAYER_URL, RUN, SPRINT, RIDE_SPRINT, PARCEL_SLOW, JUMP_V, GRAVITY, FOOD_TIME, PARCEL_TIME, FOOD_PAY, PARCEL_PAY, FAR_PAY, NIGHT_PAY, RAIN_GRIP, RAIN_PAY, FIESTA_PAY, UNDAS_PAY, GOAL_COUNT, STREAK_STEP, STREAK_MAX, REGULAR_VISITS, REGULAR_BONUS, STAR_PAY, TIP_MAX, OFFER_COUNT, OFFER_LIFE, HIT_SPEED, HIT_FINE, HIT_DAMAGE, GHOST_SPEED, GHOST_DAMAGE, DEALER_MIN, BUYER_MIN, CONTRABAND_PAY, CONTRABAND_FAR_PAY, ARREST_COST, POLICE_PATROL, POLICE_CHASE, POLICE_SEE, POLICE_LOSE, POLICE_GIVE_UP, DOG_TYPES, DOG_BREEDS };

@@ -14,12 +14,15 @@
 <body>
 <div id="hud">
   <div id="top">
-    <div>
+    <div id="stats">
       <div id="cash">₱0</div>
       <div class="label">Stamina</div>
       <div class="bar" id="staminaBar"><i></i></div>
       <div class="label" id="ratingTag"></div>
+      <div class="label" id="streakTag"></div>
       <div class="label" id="nightTag"></div>
+      <div class="label" id="eventTag"></div>
+      <div class="label" id="onlineTag"></div>
     </div>
     <canvas id="mini" aria-label="Minimap"></canvas>
   </div>
@@ -61,12 +64,17 @@
   <h2>Order board</h2>
   <p id="boardNote"></p>
   <div id="boardList"></div>
+  <h3>Today's goals</h3>
+  <div id="goalList"></div>
+  <div id="topRiders" hidden>
+    <h3>Top riders</h3>
+    <div id="topList"></div>
+  </div>
   <form method="dialog"><div class="row"><button class="quiet">Close</button></div></form>
 </dialog>
-<dialog id="garageBox">
-  <h2>Your home</h2>
-  <p id="garageCash"></p>
-  <div id="garageList"></div>
+<dialog id="shopBox">
+  <div class="shophead"><h2 id="shopTitle"></h2><span id="shopCash"></span></div>
+  <div id="shopList"></div>
   <form method="dialog"><div class="row"><button class="quiet">Close</button></div></form>
 </dialog>
 

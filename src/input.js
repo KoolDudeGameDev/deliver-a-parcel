@@ -2,7 +2,7 @@
 import { $, clamp } from './util.js';
 import { view, controls, keys, stick } from './state.js';
 import { renderer } from './engine.js';
-import { dialogOpen, action } from './home.js';
+import { dialogOpen, action } from './actions.js';
 import { toggleMute } from './audio.js';
 
 let lastX = 0, lastY = 0;

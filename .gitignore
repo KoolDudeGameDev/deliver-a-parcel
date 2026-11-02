@@ -1,2 +1,4 @@
 .vercel
 .playwright-mcp
+node_modules
+leaderboard.json

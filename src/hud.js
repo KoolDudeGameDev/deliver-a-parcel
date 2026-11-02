@@ -7,7 +7,11 @@ import { hubRing } from './world.js';
 import { player } from './player.js';
 import { save } from './save.js';
 import { orders, capacity, nearestOrder, beamMaterial } from './orders.js';
-import { affordable, actionSpot } from './home.js';
+import { affordable } from './home.js';
+import { actionSpot } from './actions.js';
+import { streakBonus } from './goals.js';
+import { eventText } from './events.js';
+import { net } from './net.js';
 
 $('nightTag').textContent = `Night pay +${Math.round((NIGHT_PAY - 1) * 100)}%`;
 
@@ -15,8 +19,11 @@ function updateHud(now) {
   $('cash').textContent = `₱${save.cash}`;
   $('staminaBar').firstElementChild.style.transform = `scaleX(${player.stamina / 100})`;
   $('job').style.visibility = orders.length ? 'visible' : 'hidden';
-  $('nightTag').style.visibility = clock.night > .5 ? 'visible' : 'hidden';
+  $('nightTag').style.display = clock.night > .5 ? 'block' : 'none';
   $('ratingTag').textContent = save.ratingCount ? `★ ${(save.ratingSum / save.ratingCount).toFixed(1)} rating` : '';
+  $('streakTag').textContent = save.streak >= 2 ? `Streak ${save.streak}, +${Math.round(streakBonus() * 100)}% pay` : '';
+  $('eventTag').textContent = eventText();
+  $('onlineTag').textContent = net.online ? `${net.count} of 7 online` : '';
   const spot = actionSpot();
   $('btnAction').classList.toggle('ready', !!spot);
   $('btnAction').textContent = spot || 'ACTION';
@@ -26,10 +33,12 @@ function updateHud(now) {
   $('hint').textContent =
     spot === 'ORDER' ? `${press} open the order board${orders.length ? ` (${orders.length} of ${capacity()} carried)` : ''}` :
     spot === 'HOME' ? `${press} open your home` :
+    spot === 'DEALER' ? `${press} see the vehicles` :
+    spot === 'MECHANIC' ? `${press} see the mechanic` :
     spot === 'DEAL' ? `${press} take the shady package` :
     orders.length ? '' :
     !save.delivered ? (isTouch ? 'Left thumb moves, right thumb looks. Follow the green dot for orders' : 'WASD move · Shift sprint · Space jump · drag to look · follow the green dot for orders') :
-    deal ? `You can afford: ${deal.name}. Follow the blue dot home` : '';
+    deal ? `You can afford: ${deal.name}` : '';
   const o = nearestOrder();
   if (!o) return;
   const d = o.house.step, dx = d.x - player.pos.x, dz = d.z - player.pos.z;

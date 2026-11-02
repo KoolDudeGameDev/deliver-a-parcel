@@ -2,7 +2,7 @@
 // buyer for big money, but it makes you a target for the police.
 import * as THREE from 'three';
 import { toast } from './util.js';
-import { RUN, CONTRABAND_PAY, CONTRABAND_FAR_PAY } from './config.js';
+import { RUN, DEALER_MIN, BUYER_MIN, CONTRABAND_PAY, CONTRABAND_FAR_PAY } from './config.js';
 import { scene, box } from './engine.js';
 import { clearSpot } from './world.js';
 import { clock } from './daynight.js';
@@ -36,7 +36,7 @@ function takePackage() {
     toast('Your ride is full');
     return false;
   }
-  const [x, z] = clearSpot(dealer.position.x, dealer.position.z, 80, 200);
+  const [x, z] = clearSpot(dealer.position.x, dealer.position.z, BUYER_MIN);
   const dist = Math.hypot(x - dealer.position.x, z - dealer.position.z);
   addOrder({
     food: false, light: true, contraband: true, title: 'Shady package to the buyer',
@@ -55,7 +55,7 @@ function updateContraband(dt) {
   if (job) buyer.position.set(job.house.x, 0, job.house.z);
   if (!dark) dealer.visible = false;
   if (dark && !job && !dealer.visible && (wait -= dt) <= 0) {
-    const [x, z] = clearSpot(player.pos.x, player.pos.z, 50, 170);
+    const [x, z] = clearSpot(player.pos.x, player.pos.z, DEALER_MIN);
     dealer.position.set(x, 0, z);
     dealer.rotation.y = Math.random() * 6;
     dealer.visible = true;

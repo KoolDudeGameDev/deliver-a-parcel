@@ -1,6 +1,6 @@
 // Moves the player each frame.
 import { clamp } from './util.js';
-import { view, controls, keys, stick } from './state.js';
+import { view, controls, keys, stick, weather } from './state.js';
 import { RUN, SPRINT, RIDE_SPRINT, PARCEL_SLOW, JUMP_V, GRAVITY } from './config.js';
 import { sun, resolve } from './engine.js';
 import { EDGE, HOUSES } from './world.js';
@@ -41,7 +41,7 @@ function movePlayer(dt) {
   // On a phone the left thumb also steers the camera a little, so you can play one-handed.
   if (stick.id !== null && controls.lookId === null) view.yaw -= ix * 1.1 * dt;
 
-  const s = Math.sin(view.yaw), c = Math.cos(view.yaw), grip = Math.min(1, (ride ? ride.accel : 30) * dt);
+  const s = Math.sin(view.yaw), c = Math.cos(view.yaw), grip = Math.min(1, (ride ? ride.accel * weather.grip : 30) * dt);
   p.vx += ((-s * iz + c * ix) * speed - p.vx) * grip;
   p.vz += ((-c * iz - s * ix) * speed - p.vz) * grip;
   const pace = Math.hypot(p.vx, p.vz);
@@ -94,6 +94,14 @@ function animate(ride, sprinting, pace, dt) {
     legR.rotation.x = -.75 - wave * .45 * p.moving;
   } else if (pose === 'motor') {
     legL.rotation.x = legR.rotation.x = -1.15;
+  } else if (pose === 'blades') {
+    // Long gliding strides, with each skate following its foot.
+    const glide = Math.sin(p.phase * .55) * .42 * p.moving;
+    legL.rotation.x = glide;
+    legR.rotation.x = -glide;
+    const [l, r] = rideGroup.userData.skates;
+    l.position.z = -Math.sin(glide);
+    r.position.z = Math.sin(glide);
   } else if (pose === 'board') {
     // Front foot stays planted, back foot pushes off the ground while you're accelerating.
     legL.rotation.x = .12;
@@ -104,10 +112,10 @@ function animate(ride, sprinting, pace, dt) {
   }
 
   const bars = pose === 'pedal' ? -.85 : pose === 'motor' ? -.95 : null;
-  armL.rotation.x = bars ?? (carrying ? -1.5 : pose === 'board' ? 0 : -wave * .9 * p.moving);
-  armR.rotation.x = bars ?? (carrying ? -1.5 : pose === 'board' ? 0 : wave * .9 * p.moving);
+  armL.rotation.x = bars ?? (carrying ? -1.5 : pose ? 0 : -wave * .9 * p.moving);
+  armR.rotation.x = bars ?? (carrying ? -1.5 : pose ? 0 : wave * .9 * p.moving);
   // Arms out for balance on a board.
-  const balance = pose === 'board' && !carrying ? .55 : 0;
+  const balance = (pose === 'board' || pose === 'blades') && !carrying ? .55 : 0;
   armL.rotation.z = -balance;
   armR.rotation.z = balance;
   // Both hands are on the bars, so what you're carrying rides behind you.
@@ -121,7 +129,7 @@ function animate(ride, sprinting, pace, dt) {
   body.rotation.z = p.lean;
   body.rotation.x = ride && sprinting ? (pose === 'motor' ? -.12 : .1) : 0;
 
-  if (ride) for (const w of rideGroup.userData.wheels) w.rotation.x += pace * dt / w.userData.r;
+  if (ride) for (const w of rideGroup.userData.wheels ?? []) w.rotation.x += pace * dt / w.userData.r;
 
   headlight.visible = !!ride && clock.night > .02;
   if (ride) {

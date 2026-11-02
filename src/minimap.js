@@ -2,13 +2,14 @@
 import { $ } from './util.js';
 import { view } from './state.js';
 import { walls } from './engine.js';
-import { ROADS, EDGE, HUB, HOUSES, LOTS, TREES } from './world.js';
+import { ROADS, EDGE, HUB, HOUSES, LOTS, TREES, SHOPS } from './world.js';
 import { body, player } from './player.js';
 import { orders, capacity, nearestOrder } from './orders.js';
 import { dogs } from './dogs.js';
 import { lady } from './ghost.js';
 import { dealer } from './contraband.js';
 import { cars } from './police.js';
+import { net } from './net.js';
 import { myLot } from './home.js';
 
 const mini = $('mini'), mx = mini.getContext('2d');
@@ -89,6 +90,8 @@ function updateMini(now) {
     mx.stroke();
   };
   for (const d of dogs) marker(...toMini(d.pos.x, d.pos.z), dot * (.4 + d.scale * .4), '#e0352b');
+  for (const [s, c] of [[SHOPS.dealer, '#ffa23f'], [SHOPS.mechanic, '#35d8c8']]) marker(...toMini(s.step.x, s.step.z), dot, c);
+  for (const o of net.others.values()) marker(...toMini(o.x, o.z, true), dot * 1.1, '#ffffff');
   if (dealer.visible) marker(...toMini(dealer.position.x, dealer.position.z, true), dot * 1.3, '#b14dff');
   for (const c of cars) marker(...toMini(c.pos.x, c.pos.z, c.mode === 'chase'), dot * .9, c.mode === 'chase' && now % 240 < 120 ? '#e0352b' : '#2f7de0');
   if (lady.active) marker(...toMini(lady.pos.x, lady.pos.z), dot, '#ffffff');

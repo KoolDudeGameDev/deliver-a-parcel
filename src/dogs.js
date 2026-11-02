@@ -20,6 +20,20 @@ const alertTex = (() => {
 
 function buildDog(h) {
   const b = DOG_BREEDS[h.dog], t = DOG_TYPES[b.size], g = new THREE.Group(), c = b.coat, dark = b.muzzle ?? 0x333333;
+  return (b.shape === 'goose' ? buildGoose : buildFourLegs)(h, b, t, g, c, dark);
+}
+
+function buildGoose(h, b, t, g, c) {
+  box(.7, .6, 1.2, c, 0, .75, 0, g);
+  box(.26, 1, .26, c, 0, 1.5, .55, g);
+  box(.34, .3, .46, c, 0, 2.05, .66, g);
+  box(.22, .12, .34, 0xf0883a, 0, 2, 1, g);
+  const tail = box(.3, .2, .4, c, 0, .95, -.7, g);
+  const legs = [-.18, .18].map(x => limb(.12, .46, .12, 0xf0883a, x, .46, g));
+  return finishDog(h, b, t, g, legs, tail);
+}
+
+function buildFourLegs(h, b, t, g, c, dark) {
   const len = b.len ?? 1, tall = b.legs ?? 1, bulk = b.fluffy ? 1.3 : 1, legH = .5 * tall, y = legH + .25, front = .7 * len;
   box(.6 * bulk, .6 * bulk, 1.4 * len, c, 0, y, 0, g);
   if (b.mark) box(.62 * bulk, .14, .95 * len, b.mark, 0, y + .26 * bulk, -.08, g);
@@ -36,6 +50,10 @@ function buildDog(h) {
     p.position.z = z * len;
     return p;
   });
+  return finishDog(h, b, t, g, legs, tail);
+}
+
+function finishDog(h, b, t, g, legs, tail) {
   g.scale.setScalar(t.scale);
   scene.add(g);
   const mark = new THREE.Sprite(new THREE.SpriteMaterial({ map: alertTex, transparent: true }));
@@ -44,7 +62,7 @@ function buildDog(h) {
   mark.visible = false;
   g.add(mark);
   const pos = new THREE.Vector3(h.x, 0, h.z).addScaledVector(new THREE.Vector3(h.dx, 0, h.dz), 5);
-  return { ...t, name: b.name, house: h, group: g, legs, tail, mark, pos, target: pos.clone(), wait: 0, cd: 0, alert: false, phase: 0, r: .55 * t.scale };
+  return { ...t, name: b.name, call: b.call ?? 'WOOF!', house: h, group: g, legs, tail, mark, pos, target: pos.clone(), wait: 0, cd: 0, alert: false, phase: 0, r: .55 * t.scale };
 }
 const dogs = HOUSES.filter(h => h.dog).map(buildDog);
 const inYard = (p, y) => p.x > y.x0 && p.x < y.x1 && p.z > y.z0 && p.z < y.z1;
@@ -65,10 +83,10 @@ function bite(d) {
 function updateDog(d, dt) {
   const y = d.house.yard, chasing = inYard(player.pos, y);
   // Too far off to make out, so not worth a dozen draw calls each.
-  d.group.visible = Math.hypot(player.pos.x - d.pos.x, player.pos.z - d.pos.z) < 130;
+  d.group.visible = Math.hypot(player.pos.x - d.pos.x, player.pos.z - d.pos.z) < 90;
   if (chasing && !d.alert) {
-    toast('WOOF! Run!');
-    play('bark');
+    toast(`${d.call} Run!`);
+    play(d.call === 'WOOF!' ? 'bark' : 'honk');
   }
   d.alert = chasing;
   d.mark.visible = chasing;

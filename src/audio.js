@@ -35,7 +35,24 @@ function start() {
 addEventListener('pointerdown', start);
 addEventListener('keydown', start);
 
+// A goose or a cross cat: a short falling squawk, generated rather than a clip.
+function squawk() {
+  const tone = context.createOscillator(), gain = context.createGain(), now = context.currentTime;
+  tone.type = 'sawtooth';
+  tone.frequency.setValueAtTime(520, now);
+  tone.frequency.exponentialRampToValueAtTime(240, now + .22);
+  gain.gain.setValueAtTime(.12, now);
+  gain.gain.exponentialRampToValueAtTime(.001, now + .24);
+  tone.connect(gain).connect(master);
+  tone.start();
+  tone.stop(now + .25);
+}
+
 function play(name) {
+  if (name === 'honk') {
+    if (context) squawk();
+    return;
+  }
   if (!sounds[name]) return;
   const source = context.createBufferSource(), gain = context.createGain();
   source.buffer = sounds[name];

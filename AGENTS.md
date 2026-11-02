@@ -1,7 +1,7 @@
 # Deliver a Parcel
 
 Blocky three.js delivery game. A static site of native ES modules, with no build step and no
-dependencies to install. Live at <https://deliver-a-parcel.vercel.app>.
+dependencies to install. `server/` holds the optional multiplayer server, which uses `ws`. Live at <https://deliver-a-parcel.vercel.app>.
 
 ## Layout
 
@@ -25,6 +25,9 @@ Imports only point up this list. There are no circular imports, so keep it that 
 | `orders.js`, `dogs.js` | Offers and orders, then dogs, which call `hurtOrders` |
 | `citizens.js`, `ghost.js` | Walkers, leashed dogs and pickleball players (`InstancedMesh`es), the White Lady |
 | `hub.js`, `board.js`, `contraband.js`, `police.js` | Conveyor, order board, night jobs, police |
+| `goals.js`, `events.js`, `traffic.js` | Daily goals and streaks, weather and festivals, road traffic |
+| `shop.js`, `actions.js` | Shop panel, and what the action button does at each place |
+| `net.js` | Multiplayer client, off unless `MULTIPLAYER_URL` or `?server=` is set |
 | `home.js` | Upgrade panel, `action`, mounting and parking vehicles |
 | `input.js`, `movement.js`, `camera.js` | Controls and per-frame movement |
 | `hud.js`, `minimap.js` | On-screen display |
@@ -39,6 +42,8 @@ its owner, because ES module exports are read-only to importers.
   everything after it, including the home sites.
 - Static boxes go through `block()` and become `InstancedMesh`es. Moving things use `box()`.
 - Keep draw calls near 100 in the phone setup (`?touch` in the URL). Check `renderer.info.render.calls`.
+  Far signs and homes are hidden through `distant` in `engine.js`, and chasers beyond 90m in `dogs.js`.
+- Treat everything the server receives as untrusted, as `server/server.js` does.
 - Vehicles auto-park at customer gates. That keeps the dog chase on foot, so don't remove it.
 - A new saved field needs a default and a check in `loadSave()` in `save.js`.
 - Prefer sound clips with a confirmed free licence. Every clip goes in `assets/sfx/CREDITS.md`, with

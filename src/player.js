@@ -13,11 +13,10 @@ function limb(w, h, d, color, x, pivotY, parent) {
 const body = new THREE.Group();
 body.rotation.order = 'YXZ'; // Turn first, so leaning into a corner rolls around the way you face.
 scene.add(body);
-const SKIN = 0xf6c945, SHIRT = 0x2f7de0, PANTS = 0x2b3a55;
-box(.95, 1, .5, SHIRT, 0, 1.5, 0, body);
+const SKIN = 0xf6c945, SHIRT = 0x2f7de0, HAT = 0xe0443a, PANTS = 0x2b3a55;
+const shirtMaterial = box(.95, 1, .5, SHIRT, 0, 1.5, 0, body).material;
 box(.72, .72, .72, SKIN, 0, 2.38, 0, body);
-box(.78, .22, .78, 0xe0443a, 0, 2.8, 0, body);
-box(.78, .1, .3, 0xe0443a, 0, 2.72, .5, body);
+const hatMaterials = [box(.78, .22, .78, HAT, 0, 2.8, 0, body).material, box(.78, .1, .3, HAT, 0, 2.72, .5, body).material];
 box(.12, .12, .05, 0x222222, -.17, 2.45, .37, body);
 box(.12, .12, .05, 0x222222, .17, 2.45, .37, body);
 const legL = limb(.42, 1, .45, PANTS, -.24, 1, body), legR = limb(.42, 1, .45, PANTS, .24, 1, body);
@@ -57,4 +56,4 @@ body.add(headlight);
 const player = { pos: new THREE.Vector3(0, 0, 9), vx: 0, vz: 0, vy: 0, kx: 0, kz: 0, lean: 0, heading: 0, stun: 0, stamina: 100, phase: 0, moving: 0 };
 const PLAYER_R = .55;
 
-export { limb, body, headlight, carryFood, carryParcel, blob, player, PLAYER_R, legL, legR, armL, armR };
+export { shirtMaterial, hatMaterials, SHIRT, HAT, limb, body, headlight, carryFood, carryParcel, blob, player, PLAYER_R, legL, legR, armL, armR };
