@@ -288,16 +288,20 @@ for (let i = 0; i < 20000 && LOTS.length < 7; i++) {
   l.group.position.set(x, 0, z);
   l.group.rotation.y = Math.atan2(dx, dz);
   scene.add(l.group);
+  l.decor = new THREE.Group();
+  l.decor.position.copy(l.group.position);
+  l.decor.rotation.y = l.group.rotation.y;
+  scene.add(l.decor);
   const sx = x + dx * 9 + dz * 6, sz = z + dz * 9 - dx * 6;
   block(.25, 2.4, .25, 0x7a5a3c, sx, 1.2, sz);
   l.signMaterial = sign([l.name.toUpperCase(), 'OPEN'], '#fff', '#222', 3.2, 1.6, sx, 3.2, sz, Math.atan2(dx, dz));
   LOTS.push(l);
 }
 
-function showLotHome(l, level) {
+function showLotHome(l, level, paint) {
   const home = HOMES[level], [w, d] = (l.dx ? [...home.size].reverse() : home.size).map(n => n * home.scale);
   l.group.clear();
-  home.model(l.group);
+  home.model(l.group, paint ?? undefined);
   l.group.scale.setScalar(home.scale);
   Object.assign(l.collider, { x0: l.x - w, x1: l.x + w, z0: l.z - d, z1: l.z + d });
 }
@@ -420,6 +424,37 @@ function candle(x, y, z) {
   });
 }
 
+// The vehicle dealer and the mechanic, either side of the hub, so upgrades are never far away.
+function addShop(x, z, color, label, ringColor) {
+  walls.push({ w: 15, h: 6, d: 10, color, x, y: 3, z });
+  block(16, .4, 11, 0x3a3f48, x, 6.2, z);
+  block(16, .7, .6, color, x, 5.5, z - 5.2);
+  addCollider(x, z, 7.5, 5);
+  sign([label], '#fff', '#222', 10, 2.4, x, 7.8, z - 5.2, 0);
+  taken.push([x, z, 11]);
+  const step = new THREE.Vector3(x, 0, z - 8.4);
+  const ring = new THREE.Mesh(ringGeometry, new THREE.MeshBasicMaterial({ color: ringColor, transparent: true, opacity: .8, side: THREE.DoubleSide, toneMapped: false }));
+  ring.position.set(step.x, .2, step.z);
+  scene.add(ring);
+  return { x, z, step, ringColor };
+}
+const SHOPS = {
+  dealer: addShop(-19, 19, 0x3f7fd6, 'DEALER', 0xffa23f),
+  mechanic: addShop(19, 19, 0x6a6f78, 'MECHANIC', 0x35d8c8),
+};
+{
+  // A showroom window and a bike on display at the dealer.
+  const { x, z } = SHOPS.dealer;
+  block(12, 3.4, .2, 0x9fd0ea, x, 2.1, z - 5.02);
+  block(2.2, .4, 2.2, 0xd6d9de, x - 5, .2, z - 7);
+  block(.3, .5, 1.5, 0xe0443a, x - 5, .75, z - 7);
+  // A roller door, tyres and a toolbox at the mechanic.
+  const m = SHOPS.mechanic;
+  block(9, 4.2, .2, 0x4a505a, m.x - 1.5, 2.1, m.z - 5.02);
+  for (let y = 0; y < 4; y++) block(1.1, .36, 1.1, 0x1f1f22, m.x + 5.6, .2 + y * .38, m.z - 6.2);
+  block(1.6, 1.2, .8, 0xd6402b, m.x - 6, .6, m.z - 6);
+}
+
 // A pickleball court where the match never ends. The players are in citizens.js.
 const COURT = { x: -92, z: 90, half: 8 };
 {
@@ -531,4 +566,4 @@ const candleGlow = new THREE.Points(
   candleMaterial);
 scene.add(candleGlow);
 
-export { ROADS, RING, OUTER, ROAD_W, EDGE, COURT, clearSpot, HUB, HUB_R, BELT_Z, BELT_Y, BELT_HALF, hubRing, HOUSES, YARD, LOTS, showLotHome, homeRing, TREES, wallMaterial, bulbMaterial, cloudMaterial, cloudMesh, glowMaterial, poolMaterial, lampGlow, lampPools, candleMaterial, candleGlow };
+export { ROADS, RING, OUTER, ROAD_W, EDGE, COURT, clearSpot, HUB, HUB_R, BELT_Z, BELT_Y, BELT_HALF, hubRing, SHOPS, HOUSES, YARD, LOTS, showLotHome, homeRing, TREES, wallMaterial, bulbMaterial, cloudMaterial, cloudMesh, glowMaterial, poolMaterial, lampGlow, lampPools, candleMaterial, candleGlow };

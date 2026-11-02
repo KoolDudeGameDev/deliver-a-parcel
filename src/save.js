@@ -3,6 +3,7 @@ import { clamp } from './util.js';
 import { RUN } from './config.js';
 import { VEHICLES, VEHICLE_KEYS } from './data/vehicles.js';
 import { HOMES } from './data/homes.js';
+import { PAINTS, DECOR_KEYS } from './data/cosmetics.js';
 import { LOTS } from './world.js';
 
 // Lives in this browser for now. Anything unexpected in it just means a new game.
@@ -19,8 +20,18 @@ function cleanParts(saved) {
   return parts;
 }
 
+const isPaint = c => PAINTS.some(p => p.color === c);
+function cleanStyle(saved) {
+  const rides = {};
+  for (const k of VEHICLE_KEYS) if (isPaint(saved?.rides?.[k])) rides[k] = saved.rides[k];
+  return {
+    house: isPaint(saved?.house) ? saved.house : null, shirt: isPaint(saved?.shirt) ? saved.shirt : null, hat: isPaint(saved?.hat) ? saved.hat : null,
+    rides, decor: DECOR_KEYS.filter(k => Array.isArray(saved?.decor) && saved.decor.includes(k)),
+  };
+}
+
 function loadSave() {
-  const fresh = { name: '', slot: null, cash: 0, delivered: 0, owned: [], equipped: null, homeLevel: 0, parts: cleanParts(), ratingSum: 0, ratingCount: 0, muted: false };
+  const fresh = { name: '', slot: null, cash: 0, delivered: 0, owned: [], equipped: null, homeLevel: 0, parts: cleanParts(), ratingSum: 0, ratingCount: 0, muted: false, style: cleanStyle() };
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY));
     if (!s || typeof s !== 'object') return fresh;
@@ -37,6 +48,7 @@ function loadSave() {
       ratingSum: Number.isFinite(s.ratingSum) && s.ratingSum > 0 ? s.ratingSum : 0,
       ratingCount: Number.isInteger(s.ratingCount) && s.ratingCount > 0 ? s.ratingCount : 0,
       muted: s.muted === true,
+      style: cleanStyle(s.style),
     };
   } catch {
     return fresh;

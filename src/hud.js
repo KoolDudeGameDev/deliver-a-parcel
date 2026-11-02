@@ -7,7 +7,8 @@ import { hubRing } from './world.js';
 import { player } from './player.js';
 import { save } from './save.js';
 import { orders, capacity, nearestOrder, beamMaterial } from './orders.js';
-import { affordable, actionSpot } from './home.js';
+import { affordable } from './home.js';
+import { actionSpot } from './actions.js';
 
 $('nightTag').textContent = `Night pay +${Math.round((NIGHT_PAY - 1) * 100)}%`;
 
@@ -26,10 +27,12 @@ function updateHud(now) {
   $('hint').textContent =
     spot === 'ORDER' ? `${press} open the order board${orders.length ? ` (${orders.length} of ${capacity()} carried)` : ''}` :
     spot === 'HOME' ? `${press} open your home` :
+    spot === 'DEALER' ? `${press} see the vehicles` :
+    spot === 'MECHANIC' ? `${press} see the mechanic` :
     spot === 'DEAL' ? `${press} take the shady package` :
     orders.length ? '' :
     !save.delivered ? (isTouch ? 'Left thumb moves, right thumb looks. Follow the green dot for orders' : 'WASD move · Shift sprint · Space jump · drag to look · follow the green dot for orders') :
-    deal ? `You can afford: ${deal.name}. Follow the blue dot home` : '';
+    deal ? `You can afford: ${deal.name}` : '';
   const o = nearestOrder();
   if (!o) return;
   const d = o.house.step, dx = d.x - player.pos.x, dz = d.z - player.pos.z;

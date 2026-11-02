@@ -1,23 +1,22 @@
 // Your home, the upgrade panel, the action button, and getting on and off your ride.
 import * as THREE from 'three';
 import { $, toast } from './util.js';
-import { view, keys } from './state.js';
+import { view } from './state.js';
 import { scene, textTexture } from './engine.js';
 import { VEHICLES, VEHICLE_KEYS } from './data/vehicles.js';
 import { HOMES } from './data/homes.js';
+import { PAINT_PRICES, DECOR } from './data/cosmetics.js';
 import { LOTS, showLotHome, homeRing } from './world.js';
-import { body, player } from './player.js';
+import { body, player, shirtMaterial, hatMaterials, SHIRT, HAT } from './player.js';
 import { save, saveGame, rideStats } from './save.js';
-import { orders, nearHub, capacity, syncCarry } from './orders.js';
-import { boardBox, openBoard } from './board.js';
-import { nearDealer, takePackage } from './contraband.js';
+import { syncCarry } from './orders.js';
 
 const myLot = () => LOTS[save.slot];
 const nearSpot = (spot, r) => Math.hypot(player.pos.x - spot.x, player.pos.z - spot.z) < r;
 
 function showHome() {
   const l = myLot();
-  showLotHome(l, save.homeLevel);
+  showStyle();
   l.signMaterial.map.dispose();
   l.signMaterial.map = textTexture([save.name, HOMES[save.homeLevel].name], '#fff', '#222');
   homeRing.position.set(l.step.x, .2, l.step.z);
@@ -39,8 +38,7 @@ function claimLot(lot, name) {
   toast(`Welcome home, ${name}!`);
 }
 
-const claimBox = $('claimBox'), garageBox = $('garageBox');
-const dialogOpen = () => claimBox.open || garageBox.open || boardBox.open;
+const claimBox = $('claimBox');
 claimBox.addEventListener('close', () => {
   claimLot(LOTS[Math.floor(Math.random() * LOTS.length)], $('nameInput').value.trim() || 'Rider');
 });
@@ -91,73 +89,42 @@ function affordable() {
   return options.filter(o => o.price <= save.cash).sort((a, b) => a.price - b.price)[0];
 }
 
-function renderGarage() {
-  $('garageCash').textContent = `You have ₱${save.cash}`;
-  const heading = text => {
-    const h = document.createElement('h3');
-    h.textContent = text;
-    return h;
-  };
-  const row = (name, sub, label, enabled, onClick) => {
-    const r = document.createElement('div'), b = document.createElement('button');
-    r.className = 'veh';
-    r.append(document.createElement('b'), document.createElement('span'), b);
-    r.children[0].textContent = name;
-    r.children[1].textContent = sub;
-    b.textContent = label;
-    b.disabled = !enabled;
-    b.onclick = () => { onClick(); renderGarage(); };
-    return r;
-  };
-  const use = key => { setVehicle(key); saveGame(); };
-  const rideLine = key => { const r = rideStats(key); return `${r.speed} m/s · carries ${r.carry}`; };
-  const home = HOMES[save.homeLevel], nextHome = HOMES[save.homeLevel + 1];
-  const list = [
-    heading('House'),
-    row(home.name, `+${Math.round(home.bonus * 100)}% pay${nextHome ? ` · next: ${nextHome.name}` : ''}`,
-      nextHome ? `₱${nextHome.price}` : 'Max', nextHome && save.cash >= nextHome.price, buyHome),
-    heading('Ride'),
-    row('Running', rideLine(null), save.equipped ? 'Use' : 'Using', !!save.equipped, () => use(null)),
-    ...VEHICLE_KEYS.map(k => {
-      const v = VEHICLES[k];
-      if (save.owned.includes(k)) return row(v.name, rideLine(k), save.equipped === k ? 'Using' : 'Use', save.equipped !== k, () => use(k));
-      const line = `${v.speed} m/s · carries 1`;
-      if (k === nextVehicle()) return row(v.name, line, `₱${v.price}`, save.cash >= v.price, () => buyVehicle(k));
-      return row(v.name, line, 'Locked', false);
-    }),
-  ];
-  const k = save.equipped;
-  if (k) {
-    list.push(heading(`${VEHICLES[k].name} upgrades`));
-    for (const [p, def] of Object.entries(VEHICLES[k].parts)) {
-      const level = save.parts[k][p], price = def.prices[level];
-      const gives = def.carry ? `+${def.carry} order${def.carry > 1 ? 's' : ''}` : def.speed ? `+${def.speed} m/s` : `+${def.accel} grip`;
-      list.push(row(def.name, `Level ${level} of ${def.prices.length} · ${gives}`,
-        price === undefined ? 'Max' : `₱${price}`, price !== undefined && save.cash >= price, () => buyPart(k, p)));
-    }
+function buyPaint(kind, color, key) {
+  const price = PAINT_PRICES[kind];
+  if (save.cash < price) return false;
+  save.cash -= price;
+  if (kind === 'ride') {
+    save.style.rides[key] = color;
+    if (save.equipped === key) setVehicle(key);
+  } else {
+    save.style[kind] = color;
+    showStyle();
   }
-  $('garageList').replaceChildren(...list);
+  saveGame();
+  toast('Fresh paint!');
+  return true;
 }
 
-function openGarage() {
-  for (const k in keys) keys[k] = false;
-  renderGarage();
-  garageBox.showModal();
+function buyDecor(key) {
+  const item = DECOR[key];
+  if (save.style.decor.includes(key) || save.cash < item.price) return false;
+  save.cash -= item.price;
+  save.style.decor.push(key);
+  showStyle();
+  saveGame();
+  toast(`${item.name} added!`);
+  return true;
 }
 
-// What the action button would do right here.
-function actionSpot() {
-  if (orders.length < capacity() && nearHub()) return 'ORDER';
-  if (nearDealer()) return 'DEAL';
-  if (myLot() && nearSpot(myLot().step, 3.6)) return 'HOME';
-  return null;
-}
-
-function action() {
-  const spot = actionSpot();
-  if (spot === 'ORDER') openBoard();
-  else if (spot === 'DEAL') takePackage();
-  else if (spot === 'HOME') openGarage();
+// Puts your paint and clothes on the world.
+function showStyle() {
+  const l = myLot(), { style } = save;
+  shirtMaterial.color.setHex(style.shirt ?? SHIRT);
+  for (const m of hatMaterials) m.color.setHex(style.hat ?? HAT);
+  if (!l) return;
+  showLotHome(l, save.homeLevel, style.house);
+  l.decor.clear();
+  for (const k of style.decor) DECOR[k].model(l.decor);
 }
 
 // A vehicle rides under the player, or waits at the gate while they walk a yard.
@@ -171,7 +138,7 @@ function setVehicle(key) {
   if (key) {
     rideNow = rideStats(key);
     rideGroup = new THREE.Group();
-    VEHICLES[key].model(rideGroup, save.parts[key]);
+    VEHICLES[key].model(rideGroup, save.parts[key], save.style.rides[key]);
     mountVehicle();
   }
   syncCarry();
@@ -192,4 +159,4 @@ function parkVehicle() {
   toast('Parked at the gate. On foot from here!');
 }
 
-export { myLot, nearSpot, showHome, goHome, claimLot, claimBox, dialogOpen, buyHome, nextVehicle, buyVehicle, buyPart, affordable, actionSpot, action, setVehicle, mountVehicle, parkVehicle, rideNow, rideGroup, parked };
+export { myLot, nearSpot, showHome, showStyle, goHome, claimLot, claimBox, buyHome, nextVehicle, buyVehicle, buyPart, buyPaint, buyDecor, affordable, setVehicle, mountVehicle, parkVehicle, rideNow, rideGroup, parked };

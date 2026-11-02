@@ -1,7 +1,7 @@
 // Taking, tracking and delivering orders.
 import * as THREE from 'three';
 import { clamp, toast } from './util.js';
-import { RUN, FOOD_TIME, PARCEL_TIME, FOOD_PAY, PARCEL_PAY, FAR_PAY, NIGHT_PAY, STAR_PAY, OFFER_COUNT, OFFER_LIFE, DOG_TYPES, DOG_BREEDS } from './config.js';
+import { RUN, FOOD_TIME, PARCEL_TIME, FOOD_PAY, PARCEL_PAY, FAR_PAY, NIGHT_PAY, STAR_PAY, TIP_MAX, OFFER_COUNT, OFFER_LIFE, DOG_TYPES, DOG_BREEDS } from './config.js';
 import { clock } from './daynight.js';
 import { scene } from './engine.js';
 import { HOMES } from './data/homes.js';
@@ -142,7 +142,7 @@ function updateOrder(dt) {
       endOrder(o);
     } else if (Math.hypot(player.pos.x - o.house.step.x, player.pos.z - o.house.step.z) < 2.4) {
       // A shady job already pays well for the risk, so it gets no tip or night bonus on top.
-      const tip = o.contraband ? 0 : Math.round(o.pay * 1.5 * (o.left / o.max) * (o.fresh / 100));
+      const tip = o.contraband ? 0 : Math.round(o.pay * TIP_MAX * (o.left / o.max) * (o.fresh / 100));
       const night = !o.contraband && clock.night > .5;
       const total = Math.round((o.pay + tip) * (1 + HOMES[save.homeLevel].bonus) * (night ? NIGHT_PAY : 1));
       // Rush orders run short on time by design, so the clock counts for less than the condition.

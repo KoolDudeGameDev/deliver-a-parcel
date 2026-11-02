@@ -14,7 +14,7 @@
 <body>
 <div id="hud">
   <div id="top">
-    <div>
+    <div id="stats">
       <div id="cash">₱0</div>
       <div class="label">Stamina</div>
       <div class="bar" id="staminaBar"><i></i></div>
@@ -63,10 +63,9 @@
   <div id="boardList"></div>
   <form method="dialog"><div class="row"><button class="quiet">Close</button></div></form>
 </dialog>
-<dialog id="garageBox">
-  <h2>Your home</h2>
-  <p id="garageCash"></p>
-  <div id="garageList"></div>
+<dialog id="shopBox">
+  <div class="shophead"><h2 id="shopTitle"></h2><span id="shopCash"></span></div>
+  <div id="shopList"></div>
   <form method="dialog"><div class="row"><button class="quiet">Close</button></div></form>
 </dialog>
 

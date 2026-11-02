@@ -10,7 +10,8 @@ import { player } from './player.js';
 import { save, rideStats } from './save.js';
 import { orders, capacity, currentOffers, renewOffers, acceptOffer, offerProblem, updateOrder } from './orders.js';
 import { dogs, updateDog } from './dogs.js';
-import { myLot, showHome, goHome, claimLot, claimBox, buyHome, buyVehicle, buyPart, actionSpot, action, setVehicle, parked } from './home.js';
+import { myLot, showHome, showStyle, goHome, claimLot, claimBox, buyHome, buyVehicle, buyPart, buyPaint, buyDecor, setVehicle, parked } from './home.js';
+import { actionSpot, action } from './actions.js';
 import { movePlayer } from './movement.js';
 import { updateCamera } from './camera.js';
 import { updateHud } from './hud.js';
@@ -25,6 +26,7 @@ import './input.js';
 
 // Back home if there's a home to come back to. First timers get a name prompt, then a box.
 setVehicle(save.equipped);
+showStyle();
 if (myLot()) {
   showHome();
   goHome();
@@ -56,7 +58,7 @@ window.game = {
   player, dogs, citizens, sounds, lady, clock, dealer, buyer, nearDealer, takePackage, cars, arrest, colliders, ROADS, HOUSES, currentOffers, renewOffers, acceptOffer, offerProblem, renderer, walls, blocks,
   get dayTime() { return clock.time; }, set dayTime(v) { clock.time = v; },
   LOTS, HOMES, VEHICLES, DOG_TYPES, orders, save, action, actionSpot, capacity, rideStats,
-  buyVehicle, buyPart, buyHome, setVehicle, claimLot, showHome, get order() { return orders[0]; }, get cash() { return save.cash; }, get delivered() { return save.delivered; },
+  buyVehicle, buyPart, buyHome, buyPaint, buyDecor, setVehicle, claimLot, showHome, get order() { return orders[0]; }, get cash() { return save.cash; }, get delivered() { return save.delivered; },
   get parked() { return parked; },
   get yaw() { return view.yaw; }, set yaw(v) { view.yaw = v; },
 };
