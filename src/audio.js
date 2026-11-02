@@ -5,7 +5,7 @@ import { save, saveGame } from './save.js';
 
 const SOUNDS = {
   hit: { file: 'fahhh_KcgAXfs.mp3', volume: 3.5 }, // A quiet clip, so it's boosted to match the rest.
-  arrest: { file: 'arrest.mp3', volume: 1 },
+  arrest: { file: 'please-dont-say-goodbye_UbYftpG.mp3', volume: .8 },
   tip: { file: 'tip.mp3', volume: .7 },
   order: { file: 'order.mp3', volume: .8 },
   bark: { file: 'bark.mp3', volume: .55 },

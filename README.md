@@ -16,7 +16,7 @@ Watch out for the dogs.
 - Some parcels go to the cemetery. Park at the gate and find your way between the tombs to the
   right grave.
 - Citizens walk the sidewalks. Hit one at speed and it costs you money and damages your orders.
-- After dark, deliveries pay 30% more. The graveyard has candles lit, and something else is
+- After dark, deliveries pay 15% more. The graveyard has candles lit, and something else is
   out there too.
 - At night, dealers offer shady packages for big money. Police will chase you while you carry one,
   and getting caught costs 25% of your cash and all your orders.
@@ -121,5 +121,5 @@ Good places to start:
 ## License
 
 The code is [MIT](LICENSE). The bundled three.js is also MIT, with its copyright notice kept at the top
-of `vendor/three.module.js`. Sound clips have their own terms: see `assets/sfx/CREDITS.md`, because one
-of them isn't covered by the MIT license.
+of `vendor/three.module.js`. Sound clips have their own terms: see `assets/sfx/CREDITS.md`, because two
+of them aren't covered by the MIT license.

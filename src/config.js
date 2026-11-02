@@ -1,7 +1,7 @@
 // Tuning numbers for the player, orders and dogs. Everything worth playing with lives here.
 
 const RUN = 6, SPRINT = 9.5, RIDE_SPRINT = 1.35, PARCEL_SLOW = 0.75, JUMP_V = 9, GRAVITY = 26;
-const FOOD_TIME = 8, PARCEL_TIME = 14, FOOD_PAY = 30, PARCEL_PAY = 25, FAR_PAY = .4, NIGHT_PAY = 1.3;
+const FOOD_TIME = 8, PARCEL_TIME = 14, FOOD_PAY = 30, PARCEL_PAY = 25, FAR_PAY = .4, NIGHT_PAY = 1.15;
 const STAR_PAY = .2, OFFER_COUNT = 3, OFFER_LIFE = 30; // Pay per difficulty star, and how the board refreshes.
 const HIT_SPEED = 7, HIT_FINE = 15, HIT_DAMAGE = 10; // Hitting a citizen: speed it takes, cost, order damage.
 const GHOST_SPEED = 3.4, GHOST_DAMAGE = 40;

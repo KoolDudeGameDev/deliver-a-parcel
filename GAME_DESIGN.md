@@ -29,13 +29,13 @@ Every new mechanic should strengthen at least one of those.
 
 | What | Amount |
 | --- | --- |
-| A delivery, with a good tip | Roughly ₱60–120, not yet measured in real play |
+| A delivery, worked out from the formulas | About ₱66 for an easy one, up to about ₱780 for a far 5-star rush at night with a mansion |
 | All five home levels | ₱13,300 |
 | All three vehicles | ₱2,150 |
 | All vehicle parts | ₱11,130 |
-| Everything | ₱26,580, or about 300 deliveries at ₱90 each |
+| Everything | ₱26,580 |
 
-At about 45 seconds a delivery, that's nearly four hours of play to finish the game.
+That's far too quick. Tips, star pay, order types, home bonus and night pay all multiply together, so about 35 top orders can buy everything. Rebalancing this is the next job.
 
 ## What's missing
 
@@ -89,7 +89,7 @@ Multiplayer needs a small always-on server, about US$2–3 a month. See the READ
 - Is the White Lady scary or just annoying? Try her speed, 3.4 m/s, first.
 - Does the 35% vehicle sprint make dogs and timers too easy on the road?
 - Does the night bonus actually get people out after dark?
-- Is four hours the right length for the climb from box to mansion?
+- How long should the climb from box to mansion take?
 - Is a shady job worth the risk of losing 25% of your cash?
 - Can police be escaped too easily by hiding in a yard?
 

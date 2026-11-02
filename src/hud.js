@@ -1,12 +1,15 @@
 // Cash, stamina, the order card and hints.
 import { isTouch, $ } from './util.js';
 import { view } from './state.js';
+import { NIGHT_PAY } from './config.js';
 import { clock } from './daynight.js';
 import { hubRing } from './world.js';
 import { player } from './player.js';
 import { save } from './save.js';
 import { orders, capacity, nearestOrder, beamMaterial } from './orders.js';
 import { affordable, actionSpot } from './home.js';
+
+$('nightTag').textContent = `Night pay +${Math.round((NIGHT_PAY - 1) * 100)}%`;
 
 function updateHud(now) {
   $('cash').textContent = `₱${save.cash}`;
