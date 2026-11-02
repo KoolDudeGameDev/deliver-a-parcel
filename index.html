@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#8fd3ff">
+<title>Delivery Game</title>
+<link rel="icon" href="data:,">
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #8fd3ff; color: #fff;
+    font: 700 16px/1.2 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    touch-action: none; overscroll-behavior: none;
+    user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  canvas { position: fixed; inset: 0; display: block; touch-action: none; }
+
+  #hud {
+    position: fixed; inset: 0; pointer-events: none;
+    padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left));
+    text-shadow: 0 2px 3px rgba(0,0,0,.55);
+  }
+  #top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  #cash { font-size: 26px; }
+  .label { font-size: 12px; margin: 5px 0 2px; }
+  .bar { width: 130px; height: 10px; background: rgba(0,0,0,.45); border-radius: 5px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 100%; transform-origin: left; background: #5ee07a; }
+  #timeBar i { background: #ffd23f; }
+  #staminaBar i { background: #6cc6ff; }
+  #job {
+    position: absolute; left: 50%; top: max(10px, env(safe-area-inset-top)); transform: translateX(-50%);
+    display: flex; align-items: center; gap: 12px; visibility: hidden;
+    padding: 6px 12px; border-radius: 12px; background: rgba(10,20,35,.55);
+  }
+  #nav { text-align: center; }
+  #arrow { font-size: 34px; line-height: 1; display: block; color: #ffd23f; }
+  #dist { font-size: 14px; white-space: nowrap; }
+  #orderName { font-size: 15px; white-space: nowrap; }
+  #timeLeft { font-size: 22px; }
+  #card .bar { width: 150px; }
+  #mini {
+    position: static; display: block; flex: none; width: 170px; height: 170px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,.85); box-shadow: 0 4px 14px rgba(0,0,0,.4);
+  }
+  @media (max-width: 760px), (max-height: 500px) { #mini { width: 110px; height: 110px; } }
+  @media (max-width: 560px) { #job { top: calc(max(10px, env(safe-area-inset-top)) + 122px); } }
+  #toast {
+    position: fixed; left: 50%; top: 30%; transform: translateX(-50%);
+    font-size: 24px; text-align: center; white-space: nowrap; opacity: 0; transition: opacity .25s;
+  }
+  #toast.show { opacity: 1; }
+  #hint {
+    position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    font-size: 14px; text-align: center; width: min(90vw, 620px);
+  }
+  body.touch #hint { bottom: auto; top: 20%; width: calc(100vw - 280px); min-width: 180px; }
+  #rotate { display: none; position: fixed; left: 0; right: 0; top: 14%; text-align: center; font-size: 15px; }
+  @media (orientation: portrait) { body.touch #rotate { display: block; } }
+
+  #touch { display: none; }
+  body.touch #touch { display: block; }
+  #leftZone { position: fixed; left: 0; top: 0; bottom: 0; width: 45%; touch-action: none; }
+  #base {
+    position: fixed; left: 0; top: 0; width: 120px; height: 120px; margin: -60px 0 0 -60px;
+    border-radius: 50%; background: rgba(255,255,255,.16); border: 3px solid rgba(255,255,255,.5);
+    pointer-events: none;
+  }
+  #knob {
+    position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px;
+    border-radius: 50%; background: rgba(255,255,255,.65);
+  }
+  .btn {
+    position: fixed; display: grid; place-items: center; border: 3px solid rgba(255,255,255,.65);
+    border-radius: 50%; color: #fff; background: rgba(0,0,0,.35); touch-action: none;
+    font: inherit; font-size: 13px; padding: 0;
+  }
+  .btn.down { background: rgba(255,255,255,.4); }
+  #btnAction { width: 84px; height: 84px; right: calc(16px + env(safe-area-inset-right)); bottom: calc(92px + env(safe-area-inset-bottom)); }
+  #btnAction.ready { background: #2fae57; border-color: #fff; }
+  #btnJump { width: 72px; height: 72px; right: calc(16px + env(safe-area-inset-right)); bottom: calc(14px + env(safe-area-inset-bottom)); }
+  #btnSprint { width: 72px; height: 72px; right: calc(104px + env(safe-area-inset-right)); bottom: calc(14px + env(safe-area-inset-bottom)); }
+</style>
+<script type="importmap">
+  { "imports": { "three": "./three.module.js" } }
+</script>
+</head>
+<body>
+<div id="hud">
+  <div id="top">
+    <div>
+      <div id="cash">₱0</div>
+      <div class="label">Stamina</div>
+      <div class="bar" id="staminaBar"><i></i></div>
+    </div>
+    <canvas id="mini" aria-label="Minimap"></canvas>
+  </div>
+  <div id="job">
+    <div id="nav"><span id="arrow">▲</span><span id="dist"></span></div>
+    <div id="card">
+      <div id="orderName"></div>
+      <div id="timeLeft"></div>
+      <div class="bar" id="timeBar"><i></i></div>
+      <div class="label" id="freshLabel">Freshness</div>
+      <div class="bar" id="freshBar"><i></i></div>
+    </div>
+  </div>
+  <div id="toast"></div>
+  <div id="hint"></div>
+  <div id="rotate">Turn your phone sideways for a wider view</div>
+</div>
+<div id="touch">
+  <div id="leftZone"></div>
+  <div id="base"><div id="knob"></div></div>
+  <button class="btn" id="btnAction">ACTION</button>
+  <button class="btn" id="btnJump">JUMP</button>
+  <button class="btn" id="btnSprint">SPRINT</button>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+
+// Tuning. Everything worth playing with lives here.
+const RUN = 6, SPRINT = 9.5, PARCEL_SLOW = 0.75, JUMP_V = 9, GRAVITY = 26;
+const FOOD_TIME = 22, PARCEL_TIME = 35, FOOD_PAY = 30, PARCEL_PAY = 25;
+const DOG_TYPES = {
+  small: { scale: .65, speed: 7.5, knock: 5, stun: .15, damage: 10, color: 0xc9915a, name: 'Small dog' },
+  big:   { scale: 1.3, speed: 5,   knock: 13, stun: .7, damage: 30, color: 0x5f5f6b, name: 'Big dog' },
+};
+
+const isTouch = matchMedia('(pointer: coarse)').matches || new URLSearchParams(location.search).has('touch');
+document.body.classList.toggle('touch', isTouch);
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+// ---------- Renderer and scene ----------
+const renderer = new THREE.WebGLRenderer({ antialias: !isTouch });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = !isTouch;
+document.body.prepend(renderer.domElement);
+
+const SKY = 0x8fd3ff;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(SKY);
+scene.fog = new THREE.Fog(SKY, 100, 230);
+const camera = new THREE.PerspectiveCamera(60, 1, .3, 260);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x7fa86a, 1.7));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+sun.castShadow = !isTouch;
+sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, { left: -40, right: 40, top: 40, bottom: -40, near: 1, far: 140 });
+scene.add(sun, sun.target);
+
+function resize() {
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+resize();
+
+// ---------- World helpers ----------
+const colliders = [], solids = [];
+
+function box(w, h, d, color, x, y, z, parent = scene) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshLambertMaterial({ color }));
+  m.position.set(x, y, z);
+  m.castShadow = m.receiveShadow = !isTouch;
+  parent.add(m);
+  return m;
+}
+
+function addCollider(x, z, halfX, halfZ) {
+  colliders.push({ x0: x - halfX, x1: x + halfX, z0: z - halfZ, z1: z + halfZ });
+}
+
+// Pushes a circle out of every box collider. Axis-aligned only, which is all this map needs.
+function resolve(p, r) {
+  for (const c of colliders) {
+    const nx = clamp(p.x, c.x0, c.x1), nz = clamp(p.z, c.z0, c.z1);
+    const dx = p.x - nx, dz = p.z - nz, d2 = dx * dx + dz * dz;
+    if (d2 >= r * r) continue;
+    if (d2 > 1e-6) {
+      const d = Math.sqrt(d2);
+      p.x = nx + dx / d * r;
+      p.z = nz + dz / d * r;
+    } else {
+      const l = p.x - c.x0, ri = c.x1 - p.x, t = p.z - c.z0, b = c.z1 - p.z, m = Math.min(l, ri, t, b);
+      if (m === l) p.x = c.x0 - r;
+      else if (m === ri) p.x = c.x1 + r;
+      else if (m === t) p.z = c.z0 - r;
+      else p.z = c.z1 + r;
+    }
+  }
+}
+
+function textTexture(lines, bg, fg) {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 128;
+  const x = c.getContext('2d');
+  x.fillStyle = bg; x.fillRect(0, 0, 256, 128);
+  x.fillStyle = fg; x.font = 'bold 44px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  lines.forEach((l, i) => x.fillText(l, 128, 64 + (i - (lines.length - 1) / 2) * 50));
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+function sign(lines, bg, fg, w, h, x, y, z, rotY) {
+  // Two planes back to back, so the text isn't mirrored from behind.
+  const material = new THREE.MeshBasicMaterial({ map: textTexture(lines, bg, fg) });
+  for (const turn of [0, Math.PI]) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), material);
+    m.position.set(x, y, z);
+    m.rotation.y = rotY + turn;
+    scene.add(m);
+  }
+}
+
+// ---------- Ground, roads, hub ----------
+{
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const x = c.getContext('2d');
+  x.fillStyle = '#6fc46a'; x.fillRect(0, 0, 64, 64);
+  x.fillStyle = '#65b960'; x.fillRect(0, 0, 32, 32); x.fillRect(32, 32, 32, 32);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(70, 70);
+  t.colorSpace = THREE.SRGBColorSpace;
+  const g = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), new THREE.MeshLambertMaterial({ map: t }));
+  g.rotation.x = -Math.PI / 2;
+  g.receiveShadow = !isTouch;
+  scene.add(g);
+}
+
+const ROAD = 0x4b4f58, PATH = 0xd9c79a, RING = 36, ROAD_W = 9;
+// [width, depth, x, z], shared by the 3D roads and the minimap.
+const ROADS = [
+  [RING * 2 + ROAD_W, ROAD_W, 0, -RING],
+  [RING * 2 + ROAD_W, ROAD_W, 0, RING],
+  [ROAD_W, RING * 2 + ROAD_W, -RING, 0],
+  [ROAD_W, RING * 2 + ROAD_W, RING, 0],
+  [6, RING * 2, 0, 0],
+  [RING * 2, 6, 0, 0],
+];
+for (const [w, d, x, z] of ROADS) box(w, .1, d, ROAD, x, .03, z);
+
+// World edge is a hedge you can see, plus a hard clamp in movePlayer.
+const EDGE = 85;
+for (const s of [-1, 1]) {
+  box(EDGE * 2 + 4, 4, 2, 0x3e8c4a, 0, 2, s * (EDGE + 1));
+  box(2, 4, EDGE * 2 + 4, 0x3e8c4a, s * (EDGE + 1), 2, 0);
+}
+
+const HUB = new THREE.Vector3(0, 0, 3), HUB_R = 4.5;
+{
+  const plaza = new THREE.Mesh(new THREE.CylinderGeometry(15, 15, .1, 32), new THREE.MeshLambertMaterial({ color: 0xcfd3da }));
+  plaza.position.y = .1;
+  scene.add(plaza);
+  const shop = box(14, 6, 7, 0xff7a45, 0, 3, -9);
+  box(15, .5, 3, 0xffffff, 0, 4.2, -4.8);
+  addCollider(0, -9, 7, 3.5);
+  solids.push(shop);
+  sign(['ORDERS'], '#fff', '#d6402b', 8, 2, 0, 5.3, -5.4, 0);
+}
+const hubRing = new THREE.Mesh(new THREE.RingGeometry(HUB_R - .5, HUB_R, 40),
+  new THREE.MeshBasicMaterial({ color: 0x4dff88, side: THREE.DoubleSide, transparent: true, opacity: .8 }));
+hubRing.rotation.x = -Math.PI / 2;
+hubRing.position.set(HUB.x, .2, HUB.z);
+scene.add(hubRing);
+
+// ---------- Houses and yards ----------
+const YARD = 13, GATE = 3.5;
+const HOUSES = [
+  { name: 'Red',    color: 0xe0524d, x: -30, z: -62, dx: 0,  dz: 1,  dog: 'small' },
+  { name: 'Blue',   color: 0x4d8de0, x: 30,  z: -62, dx: 0,  dz: 1,  dog: null },
+  { name: 'Yellow', color: 0xe8c23c, x: 62,  z: 0,   dx: -1, dz: 0,  dog: 'big' },
+  { name: 'Green',  color: 0x3fae68, x: 30,  z: 62,  dx: 0,  dz: -1, dog: null },
+  { name: 'Pink',   color: 0xe77fb3, x: -30, z: 62,  dx: 0,  dz: -1, dog: 'small' },
+  { name: 'Purple', color: 0x8d63d6, x: -62, z: 0,   dx: 1,  dz: 0,  dog: null },
+];
+
+function buildHouse(h) {
+  // Local coords: v points from the house towards the road, u runs across the yard.
+  const px = h.dz, pz = -h.dx;
+  const at = (u, v) => [h.x + h.dx * v + px * u, h.z + h.dz * v + pz * u];
+  const face = Math.atan2(h.dx, h.dz);
+  h.yard = { x0: h.x - YARD, x1: h.x + YARD, z0: h.z - YARD, z1: h.z + YARD };
+
+  const fence = (u0, v0, u1, v1) => {
+    const [ax, az] = at(u0, v0), [bx, bz] = at(u1, v1);
+    const w = Math.max(Math.abs(bx - ax), .4), d = Math.max(Math.abs(bz - az), .4);
+    const mx = (ax + bx) / 2, mz = (az + bz) / 2;
+    box(w, 2, d, 0xf3efe4, mx, 1, mz);
+    addCollider(mx, mz, w / 2, d / 2);
+  };
+  fence(-YARD, -YARD, YARD, -YARD);
+  fence(-YARD, -YARD, -YARD, YARD);
+  fence(YARD, -YARD, YARD, YARD);
+  fence(-YARD, YARD, -GATE, YARD);
+  fence(GATE, YARD, YARD, YARD);
+
+  // Gate arch, so the way in reads from the road.
+  for (const s of [-1, 1]) {
+    const [x, z] = at(s * GATE, YARD);
+    box(.6, 4, .6, h.color, x, 2, z);
+  }
+  const [gx, gz] = at(0, YARD);
+  box(Math.abs(h.dz) * (GATE * 2 + .6) + .6 * Math.abs(h.dx), .5, Math.abs(h.dx) * (GATE * 2 + .6) + .6 * Math.abs(h.dz), h.color, gx, 4, gz);
+
+  // House body, roof, door.
+  const [hx, hz] = at(0, -YARD + 6);
+  const bw = Math.abs(h.dz) * 14 + Math.abs(h.dx) * 9, bd = Math.abs(h.dx) * 14 + Math.abs(h.dz) * 9;
+  const body = box(bw, 6, bd, h.color, hx, 3, hz);
+  addCollider(hx, hz, bw / 2, bd / 2);
+  solids.push(body);
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(10.5, 4, 4), new THREE.MeshLambertMaterial({ color: 0x8a4b38 }));
+  roof.position.set(hx, 8, hz);
+  roof.rotation.y = Math.PI / 4;
+  roof.scale.set(Math.abs(h.dz) * .95 + Math.abs(h.dx) * .62, 1, Math.abs(h.dx) * .95 + Math.abs(h.dz) * .62);
+  roof.castShadow = !isTouch;
+  scene.add(roof);
+  const [dx, dz] = at(0, -YARD + 10.6);
+  box(Math.abs(h.dz) * 2 + Math.abs(h.dx) * .3, 3.4, Math.abs(h.dx) * 2 + Math.abs(h.dz) * .3, 0x5a3a28, dx, 1.7, dz);
+
+  const [sx, sz] = at(0, -YARD + 12.2);
+  h.step = new THREE.Vector3(sx, 0, sz);
+  box(Math.abs(h.dz) * 4 + Math.abs(h.dx) * 2.2, .12, Math.abs(h.dx) * 4 + Math.abs(h.dz) * 2.2, 0xbdb8aa, sx, .08, sz);
+
+  // Path from the ring road up to the gate.
+  const [p0x, p0z] = at(0, YARD), [p1x, p1z] = at(0, YARD + 10);
+  box(Math.abs(h.dz) * 5 + Math.abs(p1x - p0x), .06, Math.abs(h.dx) * 5 + Math.abs(p1z - p0z), PATH, (p0x + p1x) / 2, .02, (p0z + p1z) / 2);
+
+  if (h.dog) {
+    const [ax, az] = at(5.5, YARD + 1.2);
+    box(.25, 2.3, .25, 0x7a5a3c, ax, 1.15, az);
+    sign(['BEWARE', 'OF DOG'], '#ffd23f', '#222', 3, 1.5, ax, 2.7, az, face);
+  }
+}
+HOUSES.forEach(buildHouse);
+
+const TREES = [];
+function addTree(x, z) {
+  box(1, 3, 1, 0x7a5a3c, x, 1.5, z);
+  box(4, 3.4, 4, 0x3f9b52, x, 4.4, z);
+  addCollider(x, z, .7, .7);
+  TREES.push([x, z]);
+}
+{
+  const inHouseArea = (x, z) => HOUSES.some(h => Math.abs(x - h.x) < YARD + 12 && Math.abs(z - h.z) < YARD + 12);
+  const onRoad = (x, z) => Math.abs(x) < RING + 7 && Math.abs(z) < RING + 7 &&
+    (Math.abs(x) > RING - 7 || Math.abs(z) > RING - 7 || Math.abs(x) < 5 || Math.abs(z) < 5);
+  let placed = 0;
+  for (let i = 0; i < 300 && placed < 26; i++) {
+    const x = (Math.random() - .5) * (EDGE * 2 - 8), z = (Math.random() - .5) * (EDGE * 2 - 8);
+    if (inHouseArea(x, z) || onRoad(x, z) || Math.hypot(x, z) < 18) continue;
+    addTree(x, z);
+    placed++;
+  }
+}
+
+// ---------- Player ----------
+function limb(w, h, d, color, x, pivotY, parent) {
+  const pivot = new THREE.Group();
+  pivot.position.set(x, pivotY, 0);
+  box(w, h, d, color, 0, -h / 2, 0, pivot);
+  parent.add(pivot);
+  return pivot;
+}
+
+const body = new THREE.Group();
+scene.add(body);
+const SKIN = 0xf6c945, SHIRT = 0x2f7de0, PANTS = 0x2b3a55;
+box(.95, 1, .5, SHIRT, 0, 1.5, 0, body);
+box(.72, .72, .72, SKIN, 0, 2.38, 0, body);
+box(.78, .22, .78, 0xe0443a, 0, 2.8, 0, body);
+box(.78, .1, .3, 0xe0443a, 0, 2.72, .5, body);
+box(.12, .12, .05, 0x222222, -.17, 2.45, .37, body);
+box(.12, .12, .05, 0x222222, .17, 2.45, .37, body);
+const legL = limb(.42, 1, .45, PANTS, -.24, 1, body), legR = limb(.42, 1, .45, PANTS, .24, 1, body);
+const armL = limb(.32, 1, .4, SKIN, -.66, 2, body), armR = limb(.32, 1, .4, SKIN, .66, 2, body);
+const carryFood = box(.9, .18, .9, 0xffffff, 0, 1.75, .85, body);
+box(.92, .04, .92, 0xe0443a, 0, .1, 0, carryFood);
+const carryParcel = box(.95, .75, .75, 0xb98a56, 0, 1.75, .8, body);
+box(.97, .77, .14, 0xe7d7b2, 0, 0, 0, carryParcel);
+carryFood.visible = carryParcel.visible = false;
+
+const blob = new THREE.Mesh(new THREE.CircleGeometry(.65, 18),
+  new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .25 }));
+blob.rotation.x = -Math.PI / 2;
+scene.add(blob);
+
+const player = { pos: new THREE.Vector3(0, 0, 9), vy: 0, kx: 0, kz: 0, stun: 0, stamina: 100, phase: 0, moving: 0 };
+const PLAYER_R = .55;
+
+// ---------- Dogs ----------
+const alertTex = (() => {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const x = c.getContext('2d');
+  x.fillStyle = '#ff3b30'; x.font = 'bold 60px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillText('!', 32, 34);
+  return new THREE.CanvasTexture(c);
+})();
+
+function buildDog(h) {
+  const t = DOG_TYPES[h.dog], g = new THREE.Group(), c = t.color;
+  box(.6, .6, 1.4, c, 0, .75, 0, g);
+  box(.55, .5, .55, c, 0, 1.15, .8, g);
+  box(.3, .22, .3, 0x333333, 0, 1.05, 1.15, g);
+  box(.14, .25, .14, 0x333333, -.2, 1.45, .75, g);
+  box(.14, .25, .14, 0x333333, .2, 1.45, .75, g);
+  const tail = box(.12, .12, .6, c, 0, 1, -.9, g);
+  tail.rotation.x = .7;
+  const legs = [[-.2, .5], [.2, .5], [-.2, -.5], [.2, -.5]].map(([x, z]) => {
+    const p = limb(.18, .5, .18, c, x, .5, g);
+    p.position.z = z;
+    return p;
+  });
+  g.scale.setScalar(t.scale);
+  scene.add(g);
+  const mark = new THREE.Sprite(new THREE.SpriteMaterial({ map: alertTex, transparent: true }));
+  mark.scale.setScalar(1.5);
+  mark.position.y = 2.6;
+  mark.visible = false;
+  g.add(mark);
+  const pos = new THREE.Vector3(h.x, 0, h.z).addScaledVector(new THREE.Vector3(h.dx, 0, h.dz), 5);
+  return { ...t, house: h, group: g, legs, tail, mark, pos, target: pos.clone(), wait: 0, cd: 0, alert: false, phase: 0, r: .55 * t.scale };
+}
+const dogs = HOUSES.filter(h => h.dog).map(buildDog);
+const inYard = (p, y) => p.x > y.x0 && p.x < y.x1 && p.z > y.z0 && p.z < y.z1;
+
+function bite(d) {
+  const a = Math.atan2(player.pos.x - d.pos.x, player.pos.z - d.pos.z);
+  player.kx = Math.sin(a) * d.knock;
+  player.kz = Math.cos(a) * d.knock;
+  player.vy = Math.max(player.vy, 4);
+  player.stun = d.stun;
+  shake = .35;
+  d.cd = 1.2;
+  if (order) {
+    order.fresh = Math.max(0, order.fresh - d.damage);
+    toast(`${d.name} bit you! -${d.damage}%`);
+  } else toast(`${d.name} bit you!`);
+}
+
+function updateDog(d, dt) {
+  const y = d.house.yard, chasing = inYard(player.pos, y);
+  if (chasing && !d.alert) toast('WOOF! Run!');
+  d.alert = chasing;
+  d.mark.visible = chasing;
+  d.cd -= dt;
+
+  let speed = 1.6;
+  if (chasing) {
+    d.target.copy(player.pos);
+    speed = d.speed;
+  } else if ((d.wait -= dt) < 0) {
+    d.wait = 1 + Math.random() * 3;
+    d.target.set(d.house.x + (Math.random() - .5) * 20, 0, d.house.z + (Math.random() - .5) * 20);
+    d.target.addScaledVector(new THREE.Vector3(d.house.dx, 0, d.house.dz), 4);
+  }
+
+  const dx = d.target.x - d.pos.x, dz = d.target.z - d.pos.z, dist = Math.hypot(dx, dz);
+  const moving = dist > .6;
+  if (moving) {
+    d.pos.x += dx / dist * speed * dt;
+    d.pos.z += dz / dist * speed * dt;
+    d.group.rotation.y = Math.atan2(dx, dz);
+    d.phase += speed * dt * 2.4;
+  }
+  resolve(d.pos, d.r);
+  // Staying inside the yard rect is what makes a dog give up at the fence.
+  d.pos.x = clamp(d.pos.x, y.x0 + .8, y.x1 - .8);
+  d.pos.z = clamp(d.pos.z, y.z0 + .8, y.z1 - .8);
+
+  const swing = moving ? Math.sin(d.phase) * .9 : 0;
+  d.legs.forEach((l, i) => l.rotation.x = i % 2 ? -swing : swing);
+  d.tail.rotation.y = Math.sin(performance.now() / (chasing ? 50 : 160)) * .6;
+  d.group.position.copy(d.pos);
+  d.group.position.y = chasing ? Math.abs(Math.sin(d.phase)) * .25 : 0;
+
+  const touching = Math.hypot(player.pos.x - d.pos.x, player.pos.z - d.pos.z) < 1.1 + d.r;
+  if (chasing && touching && d.cd <= 0 && player.pos.y < .7) bite(d);
+}
+
+// ---------- Orders ----------
+let order = null, cash = 0, lastHouse = null, delivered = 0;
+const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 16, 16, 1, true),
+  new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: .35, side: THREE.DoubleSide, depthWrite: false }));
+beam.visible = false;
+scene.add(beam);
+
+const nearHub = () => Math.hypot(player.pos.x - HUB.x, player.pos.z - HUB.z) < HUB_R;
+
+function takeOrder() {
+  if (order || !nearHub()) return;
+  // Dog yards come up about twice as often: they're what this spike is testing.
+  const pool = HOUSES.flatMap(h => (h.dog ? [h, h] : [h])).filter(h => h !== lastHouse);
+  const house = pool[Math.floor(Math.random() * pool.length)];
+  const food = Math.random() < .6, max = food ? FOOD_TIME : PARCEL_TIME;
+  order = { food, house, max, left: max, fresh: 100, pay: food ? FOOD_PAY : PARCEL_PAY };
+  lastHouse = house;
+  carryFood.visible = food;
+  carryParcel.visible = !food;
+  beam.position.set(house.step.x, 8, house.step.z);
+  beam.visible = true;
+  hubRing.visible = false;
+  $('orderName').textContent = `${food ? 'Food' : 'Parcel'} to ${house.name} house`;
+  $('freshLabel').textContent = food ? 'Freshness' : 'Condition';
+  toast(food ? 'Hot food! Go go go!' : 'Parcel: heavy, so you move slower');
+  $('hint').textContent = '';
+}
+
+function endOrder() {
+  order = null;
+  carryFood.visible = carryParcel.visible = false;
+  beam.visible = false;
+  hubRing.visible = true;
+}
+
+function updateOrder(dt) {
+  if (!order) return;
+  order.left -= dt;
+  if (order.left <= 0) {
+    toast('Too late! Order cancelled');
+    endOrder();
+    return;
+  }
+  if (Math.hypot(player.pos.x - order.house.step.x, player.pos.z - order.house.step.z) < 2.4) {
+    const tip = Math.round(order.pay * 1.5 * (order.left / order.max) * (order.fresh / 100));
+    cash += order.pay + tip;
+    delivered++;
+    toast(`+₱${order.pay + tip} (tip ₱${tip})`);
+    endOrder();
+  }
+}
+
+// ---------- Input ----------
+const keys = {}, stick = { id: null, x: 0, y: 0 };
+let sprintHeld = false, wantJump = false, yaw = 0, pitch = .42, lookId = null, lastX = 0, lastY = 0;
+
+addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if (e.code === 'Space') { wantJump = true; e.preventDefault(); }
+  if (e.code === 'KeyE') takeOrder();
+});
+addEventListener('keyup', e => keys[e.code] = false);
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+addEventListener('gesturestart', e => e.preventDefault());
+addEventListener('contextmenu', e => e.preventDefault());
+
+// Mouse drag anywhere, or touch drag on the right half (the left half is covered by #leftZone).
+const canvas = renderer.domElement;
+canvas.addEventListener('pointerdown', e => {
+  if (lookId !== null) return;
+  lookId = e.pointerId; lastX = e.clientX; lastY = e.clientY;
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove', e => {
+  if (e.pointerId !== lookId) return;
+  const s = e.pointerType === 'touch' ? .008 : .005;
+  yaw -= (e.clientX - lastX) * s;
+  pitch = clamp(pitch + (e.clientY - lastY) * s * .8, .12, 1.15);
+  lastX = e.clientX; lastY = e.clientY;
+});
+const endLook = e => { if (e.pointerId === lookId) lookId = null; };
+canvas.addEventListener('pointerup', endLook);
+canvas.addEventListener('pointercancel', endLook);
+
+// The joystick appears wherever the thumb lands in the left zone.
+const zone = $('leftZone'), base = $('base'), knob = $('knob'), STICK_R = 50;
+let originX = 0, originY = 0;
+const restStick = () => {
+  originX = 100;
+  originY = innerHeight - 90;
+  base.style.left = originX + 'px';
+  base.style.top = originY + 'px';
+  knob.style.transform = '';
+};
+restStick();
+addEventListener('resize', () => { if (stick.id === null) restStick(); });
+const moveStick = e => {
+  let dx = e.clientX - originX, dy = e.clientY - originY;
+  const d = Math.hypot(dx, dy);
+  if (d > STICK_R) { dx *= STICK_R / d; dy *= STICK_R / d; }
+  stick.x = dx / STICK_R;
+  stick.y = dy / STICK_R;
+  knob.style.transform = `translate(${dx}px,${dy}px)`;
+};
+zone.addEventListener('pointerdown', e => {
+  if (stick.id !== null) return;
+  stick.id = e.pointerId;
+  zone.setPointerCapture(e.pointerId);
+  originX = e.clientX; originY = e.clientY;
+  base.style.left = originX + 'px';
+  base.style.top = originY + 'px';
+  moveStick(e);
+});
+zone.addEventListener('pointermove', e => { if (e.pointerId === stick.id) moveStick(e); });
+const endStick = e => {
+  if (e.pointerId !== stick.id) return;
+  stick.id = null; stick.x = stick.y = 0;
+  restStick();
+};
+zone.addEventListener('pointerup', endStick);
+zone.addEventListener('pointercancel', endStick);
+
+function holdButton(el, down, up) {
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('down');
+    down();
+  });
+  const release = () => { el.classList.remove('down'); up?.(); };
+  el.addEventListener('pointerup', release);
+  el.addEventListener('pointercancel', release);
+}
+holdButton($('btnJump'), () => wantJump = true);
+holdButton($('btnSprint'), () => sprintHeld = true, () => sprintHeld = false);
+holdButton($('btnAction'), takeOrder);
+
+// ---------- Update ----------
+function movePlayer(dt) {
+  const p = player;
+  p.stun -= dt;
+
+  let ix = stick.x, iz = -stick.y;
+  if (keys.KeyW || keys.ArrowUp) iz += 1;
+  if (keys.KeyS || keys.ArrowDown) iz -= 1;
+  if (keys.KeyD || keys.ArrowRight) ix += 1;
+  if (keys.KeyA || keys.ArrowLeft) ix -= 1;
+  const mag = Math.hypot(ix, iz);
+  if (mag > 1) { ix /= mag; iz /= mag; }
+  if (p.stun > 0) ix = iz = 0;
+
+  const moving = Math.hypot(ix, iz) > .05;
+  const sprinting = (keys.ShiftLeft || keys.ShiftRight || sprintHeld) && moving && p.stamina > 0;
+  p.stamina = clamp(p.stamina + (sprinting ? -30 : 18) * dt, 0, 100);
+  const speed = (sprinting ? SPRINT : RUN) * (order && !order.food ? PARCEL_SLOW : 1);
+
+  // On a phone the left thumb also steers the camera a little, so you can play one-handed.
+  if (stick.id !== null && lookId === null) yaw -= ix * 1.1 * dt;
+
+  const s = Math.sin(yaw), c = Math.cos(yaw);
+  const vx = (-s * iz + c * ix) * speed, vz = (-c * iz - s * ix) * speed;
+  p.pos.x += (vx + p.kx) * dt;
+  p.pos.z += (vz + p.kz) * dt;
+  const fade = Math.exp(-6 * dt);
+  p.kx *= fade;
+  p.kz *= fade;
+  resolve(p.pos, PLAYER_R);
+  p.pos.x = clamp(p.pos.x, -EDGE + 1, EDGE - 1);
+  p.pos.z = clamp(p.pos.z, -EDGE + 1, EDGE - 1);
+
+  const grounded = p.pos.y <= 0;
+  if (wantJump && grounded && p.stun <= 0) p.vy = JUMP_V;
+  wantJump = false;
+  p.vy -= GRAVITY * dt;
+  p.pos.y += p.vy * dt;
+  if (p.pos.y < 0) { p.pos.y = 0; p.vy = 0; }
+
+  if (moving) body.rotation.y = Math.atan2(vx, vz);
+  p.moving += ((moving ? 1 : 0) - p.moving) * Math.min(1, 12 * dt);
+  p.phase += speed * dt * 1.7;
+  const swing = Math.sin(p.phase) * .9 * p.moving;
+  legL.rotation.x = swing;
+  legR.rotation.x = -swing;
+  const carrying = !!order;
+  armL.rotation.x = carrying ? -1.5 : -swing;
+  armR.rotation.x = carrying ? -1.5 : swing;
+  body.position.copy(p.pos);
+  blob.position.set(p.pos.x, .14, p.pos.z);
+
+  sun.position.set(p.pos.x + 30, 60, p.pos.z + 20);
+  sun.target.position.copy(p.pos);
+}
+
+let shake = 0;
+const ray = new THREE.Raycaster(), camDir = new THREE.Vector3(), focus = new THREE.Vector3();
+function updateCamera(dt) {
+  focus.copy(player.pos);
+  focus.y += 2;
+  camDir.set(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
+  // Pull the camera in when a building gets between it and the player.
+  ray.set(focus, camDir);
+  ray.far = 10;
+  const hit = ray.intersectObjects(solids, false)[0];
+  camera.position.copy(focus).addScaledVector(camDir, hit ? Math.max(1.5, hit.distance - .4) : 10);
+  if (shake > 0) {
+    shake -= dt;
+    camera.position.x += (Math.random() - .5) * shake * 2;
+    camera.position.y += (Math.random() - .5) * shake * 2;
+  }
+  camera.lookAt(focus);
+}
+
+let toastTimer;
+function toast(text) {
+  const t = $('toast');
+  t.textContent = text;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function updateHud(now) {
+  $('cash').textContent = `₱${cash}`;
+  $('staminaBar').firstElementChild.style.transform = `scaleX(${player.stamina / 100})`;
+  $('job').style.visibility = order ? 'visible' : 'hidden';
+  const near = !order && nearHub();
+  $('btnAction').classList.toggle('ready', near);
+  hubRing.scale.setScalar(1 + Math.sin(now / 250) * .04);
+  beam.material.opacity = .28 + Math.sin(now / 200) * .1;
+  if (!order) {
+    if (delivered || !isTouch) {
+      $('hint').textContent = near ? (isTouch ? 'Tap ACTION for an order' : 'Press E for an order')
+        : (isTouch ? '' : 'WASD move · Shift sprint · Space jump · drag to look · green ring for orders');
+    } else {
+      $('hint').textContent = near ? 'Tap ACTION for an order' : 'Left thumb moves, right thumb looks. Go to the green ring';
+    }
+    return;
+  }
+  const d = order.house.step, dx = d.x - player.pos.x, dz = d.z - player.pos.z;
+  const s = Math.sin(yaw), c = Math.cos(yaw);
+  const ahead = dx * -s + dz * -c, right = dx * c + dz * -s;
+  $('arrow').style.transform = `rotate(${Math.atan2(right, ahead)}rad)`;
+  $('dist').textContent = `${Math.round(Math.hypot(dx, dz))}m`;
+  $('timeLeft').textContent = `${Math.ceil(order.left)}s`;
+  $('timeBar').firstElementChild.style.transform = `scaleX(${order.left / order.max})`;
+  $('freshBar').firstElementChild.style.transform = `scaleX(${order.fresh / 100})`;
+}
+
+// ---------- Minimap ----------
+const mini = $('mini'), mx = mini.getContext('2d');
+const MINI_RANGE = 90, MAP_PX = 3; // Metres from centre to rim; pixels per metre in the prerendered map.
+const hex = c => '#' + c.toString(16).padStart(6, '0');
+
+// The map only changes when the world does, so it's drawn once and rotated each frame.
+const mapLayer = document.createElement('canvas');
+function drawMapLayer() {
+  mapLayer.width = mapLayer.height = EDGE * 2 * MAP_PX;
+  const x = mapLayer.getContext('2d');
+  x.scale(MAP_PX, MAP_PX);
+  x.translate(EDGE, EDGE);
+  x.fillStyle = '#7dc777';
+  x.fillRect(-EDGE, -EDGE, EDGE * 2, EDGE * 2);
+  x.fillStyle = '#3e8c4a';
+  for (const [tx, tz] of TREES) x.fillRect(tx - 1.5, tz - 1.5, 3, 3);
+  x.fillStyle = '#5a5f6a';
+  for (const [w, d, rx, rz] of ROADS) x.fillRect(rx - w / 2, rz - d / 2, w, d);
+  x.fillStyle = '#cfd3da';
+  x.beginPath();
+  x.arc(0, 0, 15, 0, Math.PI * 2);
+  x.fill();
+  for (const h of HOUSES) {
+    const y = h.yard;
+    x.fillStyle = h.dog ? '#d9866b' : '#a6dd9f';
+    x.fillRect(y.x0, y.z0, y.x1 - y.x0, y.z1 - y.z0);
+    x.fillStyle = hex(h.color);
+    x.fillRect(h.x - 7, h.z - 7, 14, 14);
+  }
+}
+drawMapLayer();
+
+function sizeMini() {
+  mini.width = mini.height = Math.round(mini.clientWidth * Math.min(devicePixelRatio, 2));
+}
+addEventListener('resize', sizeMini);
+sizeMini();
+
+function updateMini(now) {
+  const size = mini.width, r = size / 2, k = r / MINI_RANGE, p = player.pos;
+  const s = Math.sin(yaw), c = Math.cos(yaw), dot = size / 60;
+  // World to screen, turned so the way the camera faces is always up. Markers pin to the rim.
+  const toMini = (x, z, pin) => {
+    const dx = x - p.x, dz = z - p.z;
+    let sx = (dx * c - dz * s) * k, sy = (dx * s + dz * c) * k;
+    const d = Math.hypot(sx, sy), max = r - dot * 2.5;
+    if (pin && d > max) { sx *= max / d; sy *= max / d; }
+    return [r + sx, r + sy];
+  };
+
+  mx.save();
+  mx.clearRect(0, 0, size, size);
+  mx.beginPath();
+  mx.arc(r, r, r, 0, Math.PI * 2);
+  mx.clip();
+  mx.fillStyle = '#3e8c4a';
+  mx.fillRect(0, 0, size, size);
+  mx.save();
+  mx.translate(r, r);
+  mx.rotate(yaw);
+  mx.scale(k, k);
+  mx.translate(-p.x, -p.z);
+  mx.drawImage(mapLayer, -EDGE, -EDGE, EDGE * 2, EDGE * 2);
+  mx.restore();
+
+  const marker = (x, y, radius, fill) => {
+    mx.beginPath();
+    mx.arc(x, y, radius, 0, Math.PI * 2);
+    mx.fillStyle = fill;
+    mx.fill();
+    mx.strokeStyle = '#fff';
+    mx.lineWidth = size / 110;
+    mx.stroke();
+  };
+  for (const d of dogs) marker(...toMini(d.pos.x, d.pos.z), dot * .7, '#e0352b');
+  if (order) {
+    const t = order.house.step;
+    marker(...toMini(t.x, t.z, true), dot * (1.6 + Math.sin(now / 160) * .35), '#ffd23f');
+  } else {
+    marker(...toMini(HUB.x, HUB.z, true), dot * 1.4, '#35d873');
+  }
+
+  // Player arrow, pointing the way the character faces.
+  mx.translate(r, r);
+  mx.rotate(Math.PI - body.rotation.y + yaw);
+  mx.beginPath();
+  mx.moveTo(0, -dot * 2.4);
+  mx.lineTo(dot * 1.7, dot * 1.8);
+  mx.lineTo(0, dot * .8);
+  mx.lineTo(-dot * 1.7, dot * 1.8);
+  mx.closePath();
+  mx.fillStyle = '#2f7de0';
+  mx.fill();
+  mx.strokeStyle = '#fff';
+  mx.lineWidth = size / 90;
+  mx.stroke();
+  mx.restore();
+
+  // North marker on the rim, so the turning map stays readable.
+  const nx = r + s * (r - dot * 2), ny = r - c * (r - dot * 2);
+  mx.font = `bold ${dot * 2.2}px system-ui, sans-serif`;
+  mx.textAlign = 'center';
+  mx.textBaseline = 'middle';
+  mx.lineWidth = size / 90;
+  mx.strokeStyle = 'rgba(0,0,0,.65)';
+  mx.strokeText('N', nx, ny);
+  mx.fillStyle = '#fff';
+  mx.fillText('N', nx, ny);
+}
+
+let last = performance.now();
+renderer.setAnimationLoop(now => {
+  const dt = Math.min((now - last) / 1000, .05);
+  last = now;
+  movePlayer(dt);
+  dogs.forEach(d => updateDog(d, dt));
+  updateOrder(dt);
+  updateCamera(dt);
+  updateHud(now);
+  updateMini(now);
+  renderer.render(scene, camera);
+});
+
+// Handle for scripted checks from the console.
+window.game = {
+  player, dogs, HOUSES, takeOrder, renderer,
+  get order() { return order; }, get cash() { return cash; }, get delivered() { return delivered; },
+  get yaw() { return yaw; }, set yaw(v) { yaw = v; },
+};
+</script>
+</body>
+</html>
