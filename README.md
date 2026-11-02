@@ -11,17 +11,25 @@ Watch out for the dogs.
 - Choose an order from the board at the hub, the green dot on the minimap, then follow the yellow
   dot. Each one shows its difficulty, from 1 to 5 stars. Good ratings unlock harder orders.
 - Food pays better when it's fast. Parcels are heavy and slow you down.
-- Yards have dogs, from a quick little Chihuahua to a Great Dane that hits hard. You always walk
-  through a gate, so the chase stays on foot.
+- Yards have chasers, from a quick little Chihuahua to a Great Dane, plus cats and geese. You always
+  walk through a gate, so the chase stays on foot.
 - Some parcels go to the cemetery. Park at the gate and find your way between the tombs to the
   right grave.
-- Citizens walk the sidewalks. Hit one at speed and it costs you money and damages your orders.
-- After dark, deliveries pay 15% more. The graveyard has candles lit, and something else is
-  out there too.
+- Citizens walk the sidewalks, and jeepneys and tricycles drive the rings. Hit a citizen or get hit
+  by traffic and it costs you.
+- After dark, deliveries pay 15% more. The graveyard has candles lit, and something else is out
+  there too.
 - At night, dealers offer shady packages for big money. Police will chase you while you carry one,
   and getting caught costs 25% of your cash and all your orders.
-- Spend your cash at home, the blue dot. Upgrade your house for better pay, and upgrade your ride
-  with bigger wheels, baskets and sidecars so you can carry more orders.
+- Rain, brownouts, fiestas and Undas come and go, and each changes the pay or the danger.
+- Three daily goals, delivery streaks and regular customers all pay extra.
+
+Spend your cash around town:
+
+- **Vehicle dealer** (orange dot): roller blades, skateboard, bicycle, moped, motorcycle, tricycle.
+- **Mechanic** (teal dot): bigger wheels, baskets, sidecars and paint for your ride.
+- **Home** (blue dot): house upgrades, paint, garden items and clothes. All of it is on sale from
+  the start.
 
 | Action | Keyboard and mouse | Phone |
 | --- | --- | --- |
@@ -29,13 +37,30 @@ Watch out for the dogs.
 | Look | Drag | Right thumb |
 | Sprint | Shift | SPRINT |
 | Jump | Space | JUMP |
-| Open the order board, open your home | E | ACTION |
+| Open the order board, a shop or your home | E | ACTION |
 | Mute | M, or the Sound button | Sound button |
 
 Your progress saves in your browser, so it doesn't follow you to another device.
 
-The game is single-player for now. Each person plays their own copy, and nobody sees anyone else.
-Multiplayer for up to seven players is the next big goal.
+## Multiplayer
+
+Up to seven players can share one world. You see each other riding around, each home shows its
+owner's upgrades and paint, and a leaderboard keeps the top riders. Orders and dogs stay separate
+for each player.
+
+The public link is single-player until a server is running. To start one, install the
+[Fly.io CLI](https://fly.io/docs/flyctl/install/), then run this from `server/`:
+
+```sh
+fly launch --copy-config --no-deploy
+fly deploy
+```
+
+Then put the server's address in `MULTIPLAYER_URL` in `src/config.js`, for example
+`wss://your-app-name.fly.dev`.
+
+To try it locally, run `npm install` and `npm start` in `server/`, then open the game with
+`?server=ws://localhost:8080` added to the address.
 
 ## Run it locally
 
@@ -58,6 +83,7 @@ index.html          page markup: HUD, touch buttons, dialogs
 css/style.css       all styling
 vendor/             unmodified three.js r170
 assets/sfx/         sound clips, with their sources in CREDITS.md
+server/             the multiplayer server
 src/
   main.js           starts the game and runs the frame loop
   config.js         tuning numbers, dog sizes and breeds
@@ -65,6 +91,7 @@ src/
     vehicles.js     vehicles, their upgrade parts and models
     homes.js        the house ladder and models
     orderTypes.js   fragile, rush, bulky and normal orders
+    cosmetics.js    paint, clothes and garden items
   engine.js         renderer, scene, lights, and world-building helpers
   world.js          the map: roads, houses, home sites, trees
   daynight.js       the day-to-night cycle
@@ -75,6 +102,12 @@ src/
   orders.js         taking and delivering orders
   home.js           your home, upgrades, and riding
   board.js          the order board
+  shop.js           the panel for home, dealer and mechanic
+  actions.js        what the action button does where
+  goals.js          daily goals, streaks and regular customers
+  events.js         rain, brownouts, fiesta and Undas
+  traffic.js        jeepneys and tricycles
+  net.js            multiplayer
   hub.js            the conveyor in the orders building
   contraband.js     night jobs
   police.js         police cars and arrests
@@ -116,7 +149,7 @@ Good places to start:
 - More vehicles and parts
 - Cats, geese and other things that chase you
 - Balancing prices, timers and pay
-- Multiplayer
+- Sharing dogs and orders between players
 
 ## License
 

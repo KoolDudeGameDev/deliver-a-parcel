@@ -21,67 +21,48 @@ Every new mechanic should strengthen at least one of those.
 ## The loop today
 
 1. Choose an order from the board at the hub, or a shady job after dark.
-2. Ride out, park at the gate, and get past the dog or the White Lady to the door.
-3. Get paid, with a tip for speed and condition.
-4. Go home, spend, and go back out faster, carrying more.
+2. Ride out, park at the gate, and get past the chaser or the White Lady to the door.
+3. Get paid, with a tip for speed and condition, plus any streak, regular or event bonus.
+4. Spend at the dealer, the mechanic or home, and go back out faster, carrying more.
 
 ## Where the numbers stand
 
 | What | Amount |
 | --- | --- |
-| A delivery, worked out from the formulas | About ₱66 for an easy one, up to about ₱780 for a far 5-star rush at night with a mansion |
-| All five home levels | ₱13,300 |
-| All three vehicles | ₱2,150 |
-| All vehicle parts | ₱11,130 |
-| Everything | ₱26,580 |
+| A delivery, worked out from the formulas | About ₱50 for an easy one, ₱100 on average, ₱340 for the best night rush |
+| Home levels | ₱14,900 |
+| The first four vehicles | ₱10,700 |
+| Their parts | ₱15,650 |
+| The main climb | ₱41,250, about 400 average deliveries, or roughly 4 to 5 hours |
+| Motorcycle, tricycle and their parts | ₱42,000 more, for after that |
 
-That's far too quick. Tips, star pay, order types, home bonus and night pay all multiply together, so about 35 top orders can buy everything. Rebalancing this is the next job.
-
-## What's missing
-
-- **Nothing to do after the mansion.** Once you've bought everything, cash means nothing.
-- **Little reason to come back tomorrow.**
+Paint, clothes and garden items are cheap and on sale from the start.
 
 ## The plan
 
 ### Phase 1: make every delivery a decision (done)
 
-- **Order board.** The hub offers three orders with their difficulty, pay and time.
-- **Difficulty stars.** 1 is a nearby house with no dog, and 5 is the hardest, from distance, dog
-  size and night risk. Harder orders pay more.
-- **Star rating.** Each delivery earns one to five stars, and a good average unlocks harder orders.
-- **Order types.** Fragile parcels take double damage, rush orders pay double with little time, and
-  bulky parcels need a sidecar.
-- **Sound.** Free-to-use clips and a generated siren, with a mute button.
-- **Night jobs.** After dark, dealers offer shady packages for high pay. Police patrol the rings and
-  chase anyone carrying one, and an arrest costs 25% of your cash and every order.
+The order board, difficulty stars, star rating, order types, sound, and night jobs with police.
 
-### Phase 2: give players a reason to return
+### Phase 2: give players a reason to return (done)
 
-1. **Daily goals.** Three small goals a day, such as "deliver to the cemetery at night" or "get
-   past five giant dogs."
-2. **Streaks.** Deliveries in a row with no bites pay a growing bonus, which a dog can break.
-3. **Things to buy after the mansion.** Paint for your house and vehicles, garden decorations,
-   character outfits, and pets that wait at your home.
-4. **Regular customers.** People who remember you and tip better over time.
+Daily goals, streaks, regular customers, paint, clothes, garden items and pets.
 
-### Phase 3: make the world surprising
+### Phase 3: make the world surprising (done)
 
-1. **Rain.** Slippery roads, less grip and better pay.
-2. **Brownouts.** The streetlights go out across town for a minute, and only your headlight helps.
-3. **Events.** Undas fills the graveyard with visitors and candles, and a barangay fiesta closes
-   off a street.
-4. **More chasers.** Geese, cats and a tiyanak at the graveyard.
-5. **Traffic.** Tricycles and jeepneys on the roads, to dodge at speed.
+Rain, brownouts, fiesta, Undas, traffic, cats and geese.
 
-### Phase 4: play together
+### Phase 4: play together (first step built)
 
-Multiplayer needs a small always-on server, about US$2–3 a month. See the README for the status.
+Seven players can share a world, see each other, see each other's homes and share a leaderboard.
+It needs a small always-on server, about US$2–3 a month, and the steps are in the README.
 
-1. **See each other.** Names, positions, vehicles and the seven homes.
+Still to do:
+
+1. **Shared dogs and orders,** so everyone sees the same chase.
 2. **Compete for the same order.** First to the door gets the pay.
-3. **Team up.** Big parcels that need two riders, and shared dog distractions.
-4. **Visit homes and compare.** Show off your mansion, with a weekly leaderboard.
+3. **Team up.** Big parcels that need two riders.
+4. **A leaderboard that survives redeploys,** with a small database or a Fly volume.
 
 ## Balance questions to test with real players
 
