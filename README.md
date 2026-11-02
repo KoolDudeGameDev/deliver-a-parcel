@@ -41,20 +41,53 @@ Then open <http://localhost:3000>. On Windows you can double-click `start.bat` i
 
 ## How the code is laid out
 
-There's no build step and no dependencies to install. Everything is in `index.html`, apart from
-`three.module.js`, an unmodified copy of [three.js](https://threejs.org) r170.
+There's no build step and no dependencies to install. It's plain JavaScript modules that the
+browser loads directly, so you edit a file and refresh.
 
-The tuning lives at the top of the game script. Dogs, vehicles, parts and homes are plain tables,
-so a new dog size or vehicle upgrade is usually one new row.
+```text
+index.html          page markup: HUD, touch buttons, dialogs
+css/style.css       all styling
+vendor/             unmodified three.js r170
+src/
+  main.js           starts the game and runs the frame loop
+  config.js         tuning numbers, including dog sizes
+  data/
+    vehicles.js     vehicles, their upgrade parts and models
+    homes.js        the house ladder and models
+  engine.js         renderer, scene, lights, and world-building helpers
+  world.js          the map: roads, houses, home sites, trees
+  daynight.js       the day-to-night cycle
+  player.js         the player character
+  dogs.js           dog behaviour
+  orders.js         taking and delivering orders
+  home.js           your home, upgrades, and riding
+  save.js           saved progress
+  input.js          keyboard, mouse and touch
+  movement.js       moves the player each frame
+  camera.js         the follow camera
+  hud.js            cash, stamina, order card, hints
+  minimap.js        the minimap
+  state.js          the few values several files share
+  util.js           small helpers
+```
+
+Most new content is one new row in a table. Add a dog size in `src/config.js`, then give it to a
+house in `src/world.js`. Add a vehicle or part in `src/data/vehicles.js`, or a house level in
+`src/data/homes.js`.
 
 ## Contributing
 
 Friends and strangers are both welcome.
 
+`main` is protected, so every change goes through a pull request and needs one approval.
+
 1. Fork the repo, or ask for access, and make a branch.
 2. Make one change at a time, and keep it to one pull request.
 3. Play it at desktop size and at phone size before you open the pull request.
 4. Check the browser console has no errors, and say in the pull request what you tested.
+
+Once a pull request is merged, it goes live on its own. Vercel also builds a preview of each pull
+request, but previews are private to the project's Vercel team, so test on your own machine.
 
 Keep it simple: no build step, and no new dependency for something a few lines can do.
 
@@ -69,4 +102,4 @@ Good places to start:
 ## License
 
 [MIT](LICENSE). The bundled three.js is also MIT, with its copyright notice kept at the top of
-`three.module.js`.
+`vendor/three.module.js`.
