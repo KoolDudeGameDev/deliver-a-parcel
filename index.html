@@ -18,6 +18,7 @@
       <div id="cash">₱0</div>
       <div class="label">Stamina</div>
       <div class="bar" id="staminaBar"><i></i></div>
+      <div class="label" id="ratingTag"></div>
       <div class="label" id="nightTag">Night pay +30%</div>
     </div>
     <canvas id="mini" aria-label="Minimap"></canvas>
@@ -53,6 +54,12 @@
     <input id="nameInput" maxlength="12" autocomplete="off">
     <div class="row"><button value="ok">Start</button></div>
   </form>
+</dialog>
+<dialog id="boardBox">
+  <h2>Order board</h2>
+  <p id="boardNote"></p>
+  <div id="boardList"></div>
+  <form method="dialog"><div class="row"><button class="quiet">Close</button></div></form>
 </dialog>
 <dialog id="garageBox">
   <h2>Your home</h2>

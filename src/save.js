@@ -20,7 +20,7 @@ function cleanParts(saved) {
 }
 
 function loadSave() {
-  const fresh = { name: '', slot: null, cash: 0, delivered: 0, owned: [], equipped: null, homeLevel: 0, parts: cleanParts() };
+  const fresh = { name: '', slot: null, cash: 0, delivered: 0, owned: [], equipped: null, homeLevel: 0, parts: cleanParts(), ratingSum: 0, ratingCount: 0 };
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY));
     if (!s || typeof s !== 'object') return fresh;
@@ -34,6 +34,8 @@ function loadSave() {
       equipped: owned.includes(s.equipped) ? s.equipped : null,
       homeLevel: HOMES[s.homeLevel] ? s.homeLevel : 0,
       parts: cleanParts(s.parts),
+      ratingSum: Number.isFinite(s.ratingSum) && s.ratingSum > 0 ? s.ratingSum : 0,
+      ratingCount: Number.isInteger(s.ratingCount) && s.ratingCount > 0 ? s.ratingCount : 0,
     };
   } catch {
     return fresh;

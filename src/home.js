@@ -8,7 +8,8 @@ import { HOMES } from './data/homes.js';
 import { LOTS, showLotHome, homeRing } from './world.js';
 import { body, player } from './player.js';
 import { save, saveGame, rideStats } from './save.js';
-import { orders, nearHub, capacity, syncCarry, takeOrder } from './orders.js';
+import { orders, nearHub, capacity, syncCarry } from './orders.js';
+import { boardBox, openBoard } from './board.js';
 
 const myLot = () => LOTS[save.slot];
 const nearSpot = (spot, r) => Math.hypot(player.pos.x - spot.x, player.pos.z - spot.z) < r;
@@ -38,7 +39,7 @@ function claimLot(lot, name) {
 }
 
 const claimBox = $('claimBox'), garageBox = $('garageBox');
-const dialogOpen = () => claimBox.open || garageBox.open;
+const dialogOpen = () => claimBox.open || garageBox.open || boardBox.open;
 claimBox.addEventListener('close', () => {
   claimLot(LOTS[Math.floor(Math.random() * LOTS.length)], $('nameInput').value.trim() || 'Rider');
 });
@@ -152,7 +153,7 @@ function actionSpot() {
 
 function action() {
   const spot = actionSpot();
-  if (spot === 'ORDER') takeOrder();
+  if (spot === 'ORDER') openBoard();
   else if (spot === 'HOME') openGarage();
 }
 

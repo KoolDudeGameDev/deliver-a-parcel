@@ -2,14 +2,15 @@
 
 const RUN = 6, SPRINT = 9.5, RIDE_SPRINT = 1.35, PARCEL_SLOW = 0.75, JUMP_V = 9, GRAVITY = 26;
 const FOOD_TIME = 8, PARCEL_TIME = 14, FOOD_PAY = 30, PARCEL_PAY = 25, FAR_PAY = .4, NIGHT_PAY = 1.3;
+const STAR_PAY = .2, OFFER_COUNT = 3, OFFER_LIFE = 30; // Pay per difficulty star, and how the board refreshes.
 const HIT_SPEED = 7, HIT_FINE = 15, HIT_DAMAGE = 10; // Hitting a citizen: speed it takes, cost, order damage.
 const GHOST_SPEED = 3.4, GHOST_DAMAGE = 40;
 const DOG_TYPES = {
-  tiny:   { scale: .45, speed: 8.2, knock: 3,  stun: .05, damage: 5 },
-  small:  { scale: .65, speed: 7.5, knock: 5,  stun: .15, damage: 10 },
-  medium: { scale: 1,   speed: 6.3, knock: 8,  stun: .35, damage: 18 },
-  big:    { scale: 1.35, speed: 5.4, knock: 13, stun: .7, damage: 30 },
-  giant:  { scale: 1.9, speed: 4.6, knock: 19, stun: 1.1, damage: 45 },
+  tiny:   { scale: .45, speed: 8.2, knock: 3,  stun: .05, damage: 5, danger: .5 },
+  small:  { scale: .65, speed: 7.5, knock: 5,  stun: .15, damage: 10, danger: 1 },
+  medium: { scale: 1,   speed: 6.3, knock: 8,  stun: .35, damage: 18, danger: 1.5 },
+  big:    { scale: 1.35, speed: 5.4, knock: 13, stun: .7, damage: 30, danger: 2 },
+  giant:  { scale: 1.9, speed: 4.6, knock: 19, stun: 1.1, damage: 45, danger: 3 },
 };
 
 // A size sets how a dog plays, and a breed sets how it looks. A new breed is one more row, then
@@ -30,4 +31,4 @@ const DOG_BREEDS = {
   mastiff: { name: 'Mastiff', size: 'giant', coat: 0x4a4038, muzzle: 0x141210, ears: 'flop', fluffy: true, legs: .95, tail: 'long' },
 };
 
-export { RUN, SPRINT, RIDE_SPRINT, PARCEL_SLOW, JUMP_V, GRAVITY, FOOD_TIME, PARCEL_TIME, FOOD_PAY, PARCEL_PAY, FAR_PAY, NIGHT_PAY, HIT_SPEED, HIT_FINE, HIT_DAMAGE, GHOST_SPEED, GHOST_DAMAGE, DOG_TYPES, DOG_BREEDS };
+export { RUN, SPRINT, RIDE_SPRINT, PARCEL_SLOW, JUMP_V, GRAVITY, FOOD_TIME, PARCEL_TIME, FOOD_PAY, PARCEL_PAY, FAR_PAY, NIGHT_PAY, STAR_PAY, OFFER_COUNT, OFFER_LIFE, HIT_SPEED, HIT_FINE, HIT_DAMAGE, GHOST_SPEED, GHOST_DAMAGE, DOG_TYPES, DOG_BREEDS };

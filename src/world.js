@@ -389,7 +389,7 @@ function candle(x, y, z) {
   HOUSES.push({
     name: 'Cemetery', place: 'the cemetery', x, z, dx: -1, dz: 0, dog: null, mapColor: '#8fa08a',
     yard: { x0, x1, z0, z1 }, step: new THREE.Vector3(74.5, 0, 78.6),
-    parcelOnly: true, weight: 3, extraTime: 10,
+    parcelOnly: true, weight: 3, extraTime: 10, risk: 1, nightRisk: 1,
   });
 }
 

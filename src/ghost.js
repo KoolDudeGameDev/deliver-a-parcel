@@ -8,7 +8,7 @@ import { scene } from './engine.js';
 import { HOUSES } from './world.js';
 import { clock } from './daynight.js';
 import { player } from './player.js';
-import { orders } from './orders.js';
+import { orders, hurtOrders } from './orders.js';
 import { inYard } from './dogs.js';
 
 const cemetery = HOUSES.find(h => h.name === 'Cemetery');
@@ -38,7 +38,7 @@ function scare() {
   player.vy = Math.max(player.vy, 5);
   player.stun = .5;
   view.shake = .5;
-  for (const o of orders) o.fresh = Math.max(0, o.fresh - GHOST_DAMAGE);
+  hurtOrders(GHOST_DAMAGE);
   toast(orders.length ? `The White Lady! -${GHOST_DAMAGE}%` : 'The White Lady!');
   // She fades out and comes back from the far corner, so you get a moment to run.
   lady.cooldown = 2.5;

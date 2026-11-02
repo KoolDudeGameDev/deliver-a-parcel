@@ -6,7 +6,7 @@ import { DOG_TYPES, DOG_BREEDS } from './config.js';
 import { scene, box, resolve } from './engine.js';
 import { HOUSES } from './world.js';
 import { limb, player } from './player.js';
-import { orders } from './orders.js';
+import { orders, hurtOrders } from './orders.js';
 
 const alertTex = (() => {
   const c = document.createElement('canvas');
@@ -56,7 +56,7 @@ function bite(d) {
   player.stun = d.stun;
   view.shake = .35;
   d.cd = 1.2;
-  for (const o of orders) o.fresh = Math.max(0, o.fresh - d.damage);
+  hurtOrders(d.damage);
   toast(orders.length ? `${d.name} bit you! -${d.damage}%` : `${d.name} bit you!`);
 }
 

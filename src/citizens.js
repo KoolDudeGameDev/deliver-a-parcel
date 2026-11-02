@@ -10,7 +10,7 @@ import { RING, OUTER, ROAD_W } from './world.js';
 import { clock } from './daynight.js';
 import { player } from './player.js';
 import { save, saveGame } from './save.js';
-import { orders } from './orders.js';
+import { hurtOrders } from './orders.js';
 
 const INNER_WALKERS = 5, OUTER_WALKERS = 7, WALK_STRIDE = 3.2, DOG_EVERY = 3;
 const SOLID_R = 1, CARE_R = 55; // How close you bump into someone, and how far away they can go home unseen.
@@ -109,7 +109,7 @@ function hit(c, x, z, pace) {
   const fine = Math.min(HIT_FINE, save.cash);
   save.cash -= fine;
   saveGame();
-  for (const o of orders) o.fresh = Math.max(0, o.fresh - HIT_DAMAGE);
+  hurtOrders(HIT_DAMAGE);
   toast(`Hoy! Watch it! -₱${fine}`);
 }
 
