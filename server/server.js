@@ -23,11 +23,12 @@ const number = (v, low, high, fallback = 0) => (Number.isFinite(v) ? Math.min(hi
 const text = (v, max) => (typeof v === 'string' ? v.slice(0, max) : '');
 const color = v => (Number.isInteger(v) && v >= 0 && v <= 0xffffff ? v : null);
 
+// Returning players keep their home if it's free. Anyone else gets a random free lot.
 function freeSlot(wanted) {
   const used = new Set([...players.values()].map(p => p.slot));
   if (Number.isInteger(wanted) && wanted >= 0 && wanted < MAX_PLAYERS && !used.has(wanted)) return wanted;
-  for (let i = 0; i < MAX_PLAYERS; i++) if (!used.has(i)) return i;
-  return null;
+  const free = Array.from({ length: MAX_PLAYERS }, (_, i) => i).filter(i => !used.has(i));
+  return free.length ? free[Math.floor(Math.random() * free.length)] : null;
 }
 
 function send(ws, message) {
