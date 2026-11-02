@@ -1,0 +1,4 @@
+// Values several files write to. Everything else stays in the file that owns it.
+export const view = { yaw: 0, pitch: .42, shake: 0 };
+export const controls = { sprintHeld: false, wantJump: false, lookId: null };
+export const keys = {}, stick = { id: null, x: 0, y: 0 };
