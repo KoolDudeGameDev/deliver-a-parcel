@@ -31,7 +31,7 @@ function drawMapLayer() {
   x.fill();
   for (const h of HOUSES) {
     const y = h.yard;
-    x.fillStyle = h.dog ? '#d9866b' : '#a6dd9f';
+    x.fillStyle = h.mapColor || (h.dog ? '#d9866b' : '#a6dd9f');
     x.fillRect(y.x0, y.z0, y.x1 - y.x0, y.z1 - y.z0);
   }
   x.fillStyle = '#b98a56';

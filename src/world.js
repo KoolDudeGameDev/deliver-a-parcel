@@ -276,6 +276,72 @@ function showLotHome(l, level) {
 }
 LOTS.forEach(l => showLotHome(l, 0));
 
+// The cemetery: a walled yard on the outer ring. Parcels go to the chapel door, past the graves.
+// Built after the home sites and without rnd(), so it can't move anyone's home.
+{
+  const x0 = 68, x1 = 108, z0 = 70, z1 = 106, x = (x0 + x1) / 2, z = (z0 + z1) / 2;
+  const STONE = 0x8b8f96, IRON = 0x2b2f36, GATE_GAP = 3.5, side = (z1 - z0) / 2 - GATE_GAP;
+  const wall = (cx, cz, w, d) => {
+    block(w, 1.6, d, STONE, cx, .8, cz);
+    addCollider(cx, cz, w / 2, d / 2);
+  };
+  block(x1 - x0, .04, z1 - z0, 0x6f8a62, x, .03, z);
+  wall(x, z0, x1 - x0 + .6, .6);
+  wall(x, z1, x1 - x0 + .6, .6);
+  wall(x0, z, .6, z1 - z0);
+  wall(x1, z0 + side / 2, .6, side);
+  wall(x1, z1 - side / 2, .6, side);
+
+  // Gate, with a path from the road to the chapel door.
+  for (const s of [-1, 1]) block(.9, 3.4, .9, STONE, x1, 1.7, z + s * GATE_GAP);
+  block(.7, .5, GATE_GAP * 2 + .9, IRON, x1, 3.6, z);
+  sign(['CEMETERY'], '#2b2f36', '#e8e4d8', 6, 1.5, x1, 4.7, z, Math.PI / 2);
+  block(38.8, .04, 3.6, PATH, 93.6, .05, z);
+  block(3.6, .04, 5.2, PATH, 76, .05, 85.6);
+
+  walls.push({ w: 10, h: 6, d: 9, color: 0xb9b3a6, x: 76, y: 3, z: 77 });
+  roofs.push({ w: 11.4, h: 4, d: 10.4, color: 0x4a4f5a, x: 76, y: 8, z: 77 });
+  addCollider(76, 77, 5, 4.5);
+  block(.3, 1.8, .3, IRON, 76, 10.6, 77);
+  block(1.1, .3, .3, IRON, 76, 10.9, 77);
+  block(2, 3.4, .2, 0x3a2a1c, 76, 1.7, 81.55);
+  block(4, .12, 2.2, 0xbdb8aa, 76, .1, 83.1);
+
+  // Rows of graves in three styles, leaving room around the path and the chapel.
+  let n = 0;
+  for (const tz of [74, 78.5, 83, 93, 97.5, 102]) {
+    for (let tx = 73; tx <= 104; tx += 4.5) {
+      if (tx < 84 && tz < 86) continue;
+      const style = n++ % 3, c = n % 2 ? 0x9a9ea5 : 0x7f838b;
+      if (style === 0) {
+        block(1.2, 1.1, .3, c, tx, .55, tz);
+        block(.8, .3, .3, c, tx, 1.25, tz);
+      } else if (style === 1) {
+        block(.28, 1.6, .28, c, tx, .8, tz);
+        block(1, .28, .28, c, tx, 1.1, tz);
+      } else {
+        block(1.2, .9, .25, c, tx, .45, tz);
+        block(1.4, .4, 2, c, tx, .2, tz + 1.1);
+      }
+      addCollider(tx, tz + (style === 2 ? .9 : 0), .7, style === 2 ? 1.2 : .35);
+    }
+  }
+
+  for (const [tx, tz] of [[106, 103], [70.5, 90], [106, 72.5]]) {
+    block(.7, 5, .7, 0x4a3a2c, tx, 2.5, tz);
+    block(2.6, .3, .3, 0x4a3a2c, tx, 3.6, tz);
+    block(.3, .3, 2.2, 0x4a3a2c, tx, 4.4, tz);
+    addCollider(tx, tz, .5, .5);
+  }
+
+  taken.push([x, z, 22]);
+  HOUSES.push({
+    name: 'Cemetery', place: 'the cemetery', x, z, dx: -1, dz: 0, dog: null, mapColor: '#8fa08a',
+    yard: { x0, x1, z0, z1 }, step: new THREE.Vector3(76, 0, 83.2),
+    parcelOnly: true, weight: 3, extraTime: 10,
+  });
+}
+
 const TREE_LEAVES = [0x3f9b52, 0x358a48, 0x4caf5f, 0x2f7f45];
 const TREES = [];
 function addTree(x, z) {
