@@ -19,6 +19,7 @@ import { updateMini } from './minimap.js';
 import { citizens, updateCitizens } from './citizens.js';
 import { lady, updateGhost } from './ghost.js';
 import { updateHub } from './hub.js';
+import { currentGoals, countGoal } from './goals.js';
 import { dealer, buyer, nearDealer, takePackage, updateContraband } from './contraband.js';
 import { cars, updatePolice, arrest } from './police.js';
 import { sounds } from './audio.js';
@@ -58,7 +59,7 @@ window.game = {
   player, dogs, citizens, sounds, lady, clock, dealer, buyer, nearDealer, takePackage, cars, arrest, colliders, ROADS, HOUSES, currentOffers, renewOffers, acceptOffer, offerProblem, renderer, walls, blocks,
   get dayTime() { return clock.time; }, set dayTime(v) { clock.time = v; },
   LOTS, HOMES, VEHICLES, DOG_TYPES, orders, save, action, actionSpot, capacity, rideStats,
-  buyVehicle, buyPart, buyHome, buyPaint, buyDecor, setVehicle, claimLot, showHome, get order() { return orders[0]; }, get cash() { return save.cash; }, get delivered() { return save.delivered; },
+  currentGoals, countGoal, buyVehicle, buyPart, buyHome, buyPaint, buyDecor, setVehicle, claimLot, showHome, get order() { return orders[0]; }, get cash() { return save.cash; }, get delivered() { return save.delivered; },
   get parked() { return parked; },
   get yaw() { return view.yaw; }, set yaw(v) { view.yaw = v; },
 };

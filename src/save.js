@@ -30,8 +30,19 @@ function cleanStyle(saved) {
   };
 }
 
+function cleanRegulars(saved) {
+  const out = {};
+  for (const [k, v] of Object.entries(saved && typeof saved === 'object' ? saved : {})) if (Number.isInteger(v) && v > 0) out[k] = v;
+  return out;
+}
+
+function cleanGoals(saved) {
+  const list = Array.isArray(saved?.list) ? saved.list.filter(g => Number.isInteger(g?.type) && Number.isFinite(g?.progress)) : [];
+  return { day: typeof saved?.day === 'string' ? saved.day : '', list: list.map(g => ({ type: g.type, progress: g.progress, done: g.done === true })) };
+}
+
 function loadSave() {
-  const fresh = { name: '', slot: null, cash: 0, delivered: 0, owned: [], equipped: null, homeLevel: 0, parts: cleanParts(), ratingSum: 0, ratingCount: 0, muted: false, style: cleanStyle() };
+  const fresh = { name: '', slot: null, cash: 0, delivered: 0, owned: [], equipped: null, homeLevel: 0, parts: cleanParts(), ratingSum: 0, ratingCount: 0, muted: false, style: cleanStyle(), streak: 0, regulars: {}, goals: { day: '', list: [] } };
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY));
     if (!s || typeof s !== 'object') return fresh;
@@ -49,6 +60,9 @@ function loadSave() {
       ratingCount: Number.isInteger(s.ratingCount) && s.ratingCount > 0 ? s.ratingCount : 0,
       muted: s.muted === true,
       style: cleanStyle(s.style),
+      streak: Number.isInteger(s.streak) && s.streak > 0 ? s.streak : 0,
+      regulars: cleanRegulars(s.regulars),
+      goals: cleanGoals(s.goals),
     };
   } catch {
     return fresh;

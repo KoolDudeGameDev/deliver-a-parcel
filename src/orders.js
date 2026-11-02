@@ -10,6 +10,7 @@ import { HUB, HUB_R, hubRing, HOUSES } from './world.js';
 import { carryFood, carryParcel, player } from './player.js';
 import { save, saveGame, rideStats } from './save.js';
 import { play } from './audio.js';
+import { countGoal, streakBonus, growStreak, breakStreak, isRegular, regularBonus, visit } from './goals.js';
 
 const orders = [];
 let lastHouse = null, offers = [], offersBorn = 0;
@@ -115,6 +116,7 @@ function acceptOffer(offer) {
 // Dogs and collisions hurt everything you're carrying, and fragile orders twice as much.
 function hurtOrders(amount) {
   for (const o of orders) o.fresh = Math.max(0, o.fresh - amount * (o.type?.damage ?? 1));
+  breakStreak();
 }
 
 function rate(stars) {
@@ -137,6 +139,7 @@ function updateOrder(dt) {
     o.left -= dt;
     if (o.left <= 0) {
       if (!o.contraband) rate(1);
+      breakStreak();
       saveGame();
       toast(o.contraband ? 'Too late. The buyer left' : 'Too late! Order cancelled, 1 star');
       endOrder(o);
@@ -144,18 +147,27 @@ function updateOrder(dt) {
       // A shady job already pays well for the risk, so it gets no tip or night bonus on top.
       const tip = o.contraband ? 0 : Math.round(o.pay * TIP_MAX * (o.left / o.max) * (o.fresh / 100));
       const night = !o.contraband && clock.night > .5;
-      const total = Math.round((o.pay + tip) * (1 + HOMES[save.homeLevel].bonus) * (night ? NIGHT_PAY : 1));
+      const bonus = 1 + HOMES[save.homeLevel].bonus + regularBonus(o.house) + streakBonus();
+      const total = Math.round((o.pay + tip) * bonus * (night ? NIGHT_PAY : 1));
       // Rush orders run short on time by design, so the clock counts for less than the condition.
       const stars = clamp(Math.round(1 + 4 * (Math.min(1, o.left / o.max * 1.6) * .5 + o.fresh / 100 * .5)), 1, 5);
       if (!o.contraband) rate(stars);
       play('tip');
       save.cash += total;
       save.delivered++;
+      const regularNow = visit(o.house);
+      toast(o.contraband ? `Deal done! +₱${total}` : regularNow ? `${o.house.name} is a regular now! +₱${total}` : `${starText(stars)} +₱${total}${night ? ' night pay' : ''}`);
+      growStreak();
+      countGoal('delivered');
+      if (o.house.dog) countGoal('dogYard');
+      if (stars === 5 && !o.contraband) countGoal('fiveStar');
+      if (o.stars >= 4) countGoal('hardOrder');
+      if (o.house.name === 'Cemetery' && clock.night > .5) countGoal('cemeteryNight');
+      if (o.contraband) countGoal('shady');
       saveGame();
-      toast(o.contraband ? `Deal done! +₱${total}` : `${starText(stars)} +₱${total}${night ? ' night pay' : ''}`);
       endOrder(o);
     }
   }
 }
 
-export { orders, nearHub, capacity, nearestOrder, syncCarry, currentOffers, renewOffers, acceptOffer, offerProblem, addOrder, clearOrders, starText, maxStars, hurtOrders, updateOrder, beamMaterial };
+export { orders, nearHub, capacity, nearestOrder, syncCarry, currentOffers, renewOffers, acceptOffer, offerProblem, addOrder, clearOrders, starText, isRegular, maxStars, hurtOrders, updateOrder, beamMaterial };

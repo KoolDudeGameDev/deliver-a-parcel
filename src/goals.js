@@ -1,6 +1,6 @@
 // Daily goals, delivery streaks and regular customers: the reasons to come back tomorrow.
 import { toast } from './util.js';
-import { save, saveGame } from './save.js';
+import { save } from './save.js';
 import { GOAL_COUNT, STREAK_STEP, STREAK_MAX, REGULAR_VISITS, REGULAR_BONUS } from './config.js';
 
 // A new daily goal is one more row. event is what counts towards it, from countGoal below.
@@ -68,4 +68,4 @@ function visit(house) {
   return save.regulars[house.name] === REGULAR_VISITS;
 }
 
-export { currentGoals, countGoal, streakBonus, growStreak, breakStreak, isRegular, regularBonus, visit, saveGame };
+export { currentGoals, countGoal, streakBonus, growStreak, breakStreak, isRegular, regularBonus, visit };
