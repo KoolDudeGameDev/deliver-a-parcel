@@ -38,6 +38,7 @@
   #arrow { font-size: 34px; line-height: 1; display: block; color: #ffd23f; }
   #dist { font-size: 14px; white-space: nowrap; }
   #orderName { font-size: 15px; white-space: nowrap; }
+  #more { max-width: 190px; margin-top: 4px; font-size: 12px; }
   #timeLeft { font-size: 22px; }
   #card .bar { width: 150px; }
   #mini {
@@ -88,6 +89,7 @@
   }
   dialog::backdrop { background: rgba(5,10,20,.55); }
   dialog h2 { margin: 0 0 8px; font-size: 20px; }
+  dialog h3 { margin: 10px 0 4px; font-size: 15px; color: #ffd23f; }
   dialog p { margin: 0 0 10px; font-size: 14px; font-weight: 500; color: #c3ccd8; }
   dialog button {
     min-height: 44px; padding: 8px 14px; border: 0; border-radius: 10px; font: inherit;
@@ -106,6 +108,15 @@
   }
   .veh span { font-size: 13px; font-weight: 500; color: #aab4c0; }
   .veh button { grid-column: 2; grid-row: 1 / 3; min-width: 104px; }
+  @media (max-height: 420px) {
+    dialog { width: min(96vw, 720px); padding: 10px 16px; }
+    dialog h2 { margin-bottom: 2px; }
+    dialog p { margin-bottom: 4px; }
+    dialog h3 { margin-top: 0; break-after: avoid; }
+    #garageList { columns: 2; column-gap: 24px; }
+    .veh { padding: 2px 0; break-inside: avoid; }
+    .veh button { min-width: 84px; }
+  }
 </style>
 <script type="importmap">
   { "imports": { "three": "./three.module.js" } }
@@ -129,6 +140,7 @@
       <div class="bar" id="timeBar"><i></i></div>
       <div class="label" id="freshLabel">Freshness</div>
       <div class="bar" id="freshBar"><i></i></div>
+      <div id="more"></div>
     </div>
   </div>
   <div id="toast"></div>
@@ -145,18 +157,15 @@
 
 <dialog id="claimBox">
   <form method="dialog">
-    <h2 id="claimTitle"></h2>
-    <p>This is your house and garage. It stays yours in this browser.</p>
+    <h2>Welcome, rider!</h2>
+    <p>You start with a cardboard box somewhere on the map. Deliver orders, earn cash and turn it into a mansion.</p>
     <label for="nameInput">Your name</label>
-    <input id="nameInput" maxlength="12" autocomplete="off" required>
-    <div class="row">
-      <button class="quiet" value="cancel" formnovalidate>Not now</button>
-      <button value="ok">Claim</button>
-    </div>
+    <input id="nameInput" maxlength="12" autocomplete="off">
+    <div class="row"><button value="ok">Start</button></div>
   </form>
 </dialog>
 <dialog id="garageBox">
-  <h2>Garage</h2>
+  <h2>Your home</h2>
   <p id="garageCash"></p>
   <div id="garageList"></div>
   <form method="dialog"><div class="row"><button class="quiet">Close</button></div></form>
@@ -169,41 +178,160 @@ import * as THREE from 'three';
 const RUN = 6, SPRINT = 9.5, PARCEL_SLOW = 0.75, JUMP_V = 9, GRAVITY = 26;
 const FOOD_TIME = 8, PARCEL_TIME = 14, FOOD_PAY = 30, PARCEL_PAY = 25, FAR_PAY = .4;
 const DOG_TYPES = {
-  small: { scale: .65, speed: 7.5, knock: 5, stun: .15, damage: 10, color: 0xc9915a, name: 'Small dog' },
-  big:   { scale: 1.3, speed: 5,   knock: 13, stun: .7, damage: 30, color: 0x5f5f6b, name: 'Big dog' },
+  tiny:   { scale: .45, speed: 8.2, knock: 3,  stun: .05, damage: 5,  color: 0xe8d0a9, name: 'Tiny dog' },
+  small:  { scale: .65, speed: 7.5, knock: 5,  stun: .15, damage: 10, color: 0xc9915a, name: 'Small dog' },
+  medium: { scale: 1,   speed: 6.3, knock: 8,  stun: .35, damage: 18, color: 0x9a6a45, name: 'Medium dog' },
+  big:    { scale: 1.35, speed: 5.4, knock: 13, stun: .7, damage: 30, color: 0x5f5f6b, name: 'Big dog' },
+  giant:  { scale: 1.9, speed: 4.6, knock: 19, stun: 1.1, damage: 45, color: 0x2f2f38, name: 'Giant dog' },
 };
 
-// Bought in this order. A new vehicle is one more row here.
+function wheel(r, w, z, g, x = 0) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, w, 14).rotateZ(Math.PI / 2), new THREE.MeshLambertMaterial({ color: 0x222222 }));
+  m.position.set(x, r, z);
+  m.castShadow = !isTouch;
+  g.add(m);
+}
+
+function sidecar(g) {
+  box(.95, .5, 1.6, 0xd6402b, 1.25, .62, -.05, g);
+  box(.95, .32, .5, 0xf2f2ee, 1.25, .98, .45, g);
+  box(.6, .4, .6, 0xb98a56, 1.25, 1.05, -.3, g);
+  box(1, .08, .08, 0x333333, .7, .5, .4, g);
+  box(1, .08, .08, 0x333333, .7, .5, -.5, g);
+  wheel(.32, .16, 0, g, 1.25);
+}
+
+// Bought in this order. A new vehicle is one more row here. Each part is levels of the same
+// upgrade, one price per level, and what every level adds to speed, accel or carry.
 const VEHICLES = {
   skateboard: {
-    name: 'Skateboard', price: 150, speed: 9, accel: 6, seat: .22,
-    model(g) {
-      box(.7, .08, 1.7, 0xd6402b, 0, .18, 0, g);
-      for (const z of [-.55, .55]) box(.62, .12, .14, 0x222222, 0, .07, z, g);
+    name: 'Skateboard', price: 150, speed: 9, accel: 6,
+    seat: lv => .3 + lv.wheels * .1,
+    parts: {
+      wheels: { name: 'Bigger wheels', prices: [60, 160, 360], speed: 1 },
+      deck: { name: 'Bigger deck', prices: [120, 320], accel: 2 },
+      crate: { name: 'Milk crate', prices: [260], carry: 1 },
+    },
+    model(g, lv) {
+      const r = .09 + lv.wheels * .05, len = 1.7 + lv.deck * .55, wide = .7 + lv.deck * .16;
+      box(wide, .08, len, 0xd6402b, 0, r * 2 + .06, 0, g);
+      for (const z of [-len * .32, len * .32]) {
+        for (const x of [-wide * .42, wide * .42]) wheel(r, .16, z, g, x);
+      }
+      if (lv.crate) box(.6, .5, .6, 0x3f7fd6, 0, r * 2 + .35, -len * .36, g);
     },
   },
   bicycle: {
-    name: 'Bicycle', price: 500, speed: 12, accel: 5, seat: .8,
-    model(g) {
-      for (const z of [-.85, .85]) box(.1, .95, .95, 0x222222, 0, .48, z, g);
-      box(.12, .12, 1.6, 0x2fae57, 0, .9, 0, g);
-      box(.1, .6, .1, 0x2fae57, 0, 1.15, .7, g);
-      box(.95, .1, .1, 0x222222, 0, 1.45, .7, g);
-      box(.34, .1, .5, 0x222222, 0, 1.02, -.35, g);
+    name: 'Bicycle', price: 500, speed: 12, accel: 5,
+    seat: lv => .8 + lv.tires * .16,
+    parts: {
+      tires: { name: 'Bigger tires', prices: [150, 400, 800], speed: 1 },
+      basket: { name: 'Front basket', prices: [300], carry: 1 },
+      sidecar: { name: 'Sidecar', prices: [700], carry: 2 },
+    },
+    model(g, lv) {
+      const r = .48 + lv.tires * .08, lift = lv.tires * .16;
+      for (const z of [-.85, .85]) wheel(r, .1 + lv.tires * .05, z, g);
+      box(.12, .12, 1.6, 0x2fae57, 0, .9 + lift, 0, g);
+      box(.1, .6, .1, 0x2fae57, 0, 1.15 + lift, .7, g);
+      box(.95, .1, .1, 0x222222, 0, 1.45 + lift, .7, g);
+      box(.34, .1, .5, 0x222222, 0, 1.02 + lift, -.35, g);
+      if (lv.basket) box(.65, .35, .5, 0x8a6a3a, 0, 1.25 + lift, 1.05, g);
+      if (lv.sidecar) sidecar(g);
     },
   },
   moped: {
-    name: 'Moped', price: 1500, speed: 17, accel: 3.5, seat: .75,
-    model(g) {
-      for (const z of [-.8, .85]) box(.24, .75, .75, 0x222222, 0, .38, z, g);
-      box(.6, .4, 1.7, 0xe0443a, 0, .62, 0, g);
-      box(.62, .95, .16, 0xe0443a, 0, 1.05, .72, g);
-      box(.95, .1, .1, 0x222222, 0, 1.55, .68, g);
-      box(.52, .2, .9, 0x222222, 0, .93, -.2, g);
-      box(.75, .6, .6, 0xffd23f, 0, 1.3, -.8, g);
+    name: 'Moped', price: 1500, speed: 17, accel: 3.5,
+    seat: lv => .75 + lv.tires * .12,
+    parts: {
+      engine: { name: 'Bigger engine', prices: [500, 1100, 2200], speed: 1.5 },
+      tires: { name: 'Wider tires', prices: [400, 900], accel: 1 },
+      topBox: { name: 'Top box', prices: [800], carry: 1 },
+      sidecar: { name: 'Sidecar', prices: [1600], carry: 2 },
+    },
+    model(g, lv) {
+      const r = .38 + lv.tires * .06, lift = lv.tires * .12;
+      for (const z of [-.8, .85]) wheel(r, .24 + lv.tires * .08, z, g);
+      box(.6, .4, 1.7, 0xe0443a, 0, .62 + lift, 0, g);
+      box(.62, .95, .16, 0xe0443a, 0, 1.05 + lift, .72, g);
+      box(.95, .1, .1, 0x222222, 0, 1.55 + lift, .68, g);
+      box(.52, .2, .9, 0x222222, 0, .93 + lift, -.2, g);
+      for (let i = 0; i < lv.engine; i++) box(.14, .14, .8, 0xb8bec6, .34 - i * .34, .32 + lift, -.75, g);
+      if (lv.topBox) box(.75, .6, .6, 0xffd23f, 0, 1.3 + lift, -.8, g);
+      if (lv.sidecar) sidecar(g);
     },
   },
 };
+
+function pitchedRoof(w, h, d, color, y, g, x = 0) {
+  const m = new THREE.Mesh(new THREE.ConeGeometry(Math.SQRT1_2, 1, 4).rotateY(Math.PI / 4), new THREE.MeshLambertMaterial({ color }));
+  m.scale.set(w, h, d);
+  m.position.set(x, y + h / 2, 0);
+  m.castShadow = !isTouch;
+  g.add(m);
+}
+
+// Every player starts on the first row. size is half the footprint, for the collider.
+const HOMES = [
+  {
+    name: 'Cardboard box', price: 0, bonus: 0, size: [2, 1.8],
+    model(g) {
+      box(3.6, 2.6, 3.2, 0xb98a56, 0, 1.3, 0, g);
+      box(3.64, .2, .5, 0xd9c79a, 0, 2.5, 0, g);
+      box(3.6, .1, 1.2, 0xa87b4a, 0, 2.75, 1.85, g).rotation.x = -.5;
+      box(1.3, 1.7, .06, 0x3a2a1c, 0, .85, 1.62, g);
+    },
+  },
+  {
+    name: 'Wooden shack', price: 300, bonus: .05, size: [3.2, 2.7],
+    model(g) {
+      box(6, 3.2, 5, 0x9a7350, 0, 1.6, 0, g);
+      box(6.9, .3, 5.9, 0x8f9aa6, 0, 3.35, 0, g);
+      box(1.3, 2.2, .08, 0x4a3323, -1, 1.1, 2.52, g);
+      box(1.4, 1, .08, 0x7fa6c9, 1.5, 1.8, 2.52, g);
+    },
+  },
+  {
+    name: 'Bungalow', price: 1000, bonus: .1, size: [4.2, 3.4],
+    model(g) {
+      box(8, 3.6, 6.5, 0xe8dcc4, 0, 1.8, 0, g);
+      pitchedRoof(9.4, 3, 7.9, 0x8a4b38, 3.6, g);
+      box(1.5, 2.5, .08, 0x5a3a28, 0, 1.25, 3.27, g);
+      for (const x of [-2.5, 2.5]) box(1.6, 1.2, .08, 0x7fa6c9, x, 2, 3.27, g);
+    },
+  },
+  {
+    name: 'Two-storey house', price: 3000, bonus: .15, size: [7.5, 4],
+    model(g) {
+      box(10, 6.6, 7.5, 0xd8e0ea, -2, 3.3, 0, g);
+      pitchedRoof(11.4, 3.2, 8.9, 0x56606e, 6.6, g, -2);
+      box(1.6, 2.6, .08, 0x5a3a28, -2, 1.3, 3.77, g);
+      for (const x of [-5, 1]) {
+        for (const y of [2, 5]) box(1.7, 1.3, .08, 0x7fa6c9, x, y, 3.77, g);
+      }
+      box(1.7, 1.3, .08, 0x7fa6c9, -2, 5, 3.77, g);
+      box(5, 3.6, 7, 0xc8d0da, 5.5, 1.8, 0, g);
+      box(5.6, .3, 7.6, 0x56606e, 5.5, 3.75, 0, g);
+      box(4, 2.8, .08, 0x6a6f78, 5.5, 1.4, 3.52, g);
+    },
+  },
+  {
+    name: 'Mansion', price: 9000, bonus: .25, size: [11, 4.2],
+    model(g) {
+      box(10, 8, 8, 0xf4efe4, 0, 4, 0, g);
+      pitchedRoof(11.6, 3.4, 9.6, 0x2f3b52, 8, g);
+      for (const s of [-1, 1]) {
+        box(6, 5, 7.4, 0xece6d8, s * 8, 2.5, 0, g);
+        pitchedRoof(7.4, 2.4, 8.6, 0x2f3b52, 5, g, s * 8);
+        for (const x of [-1.6, 1.6]) box(1.6, 1.6, .08, 0x7fa6c9, s * 8 + x, 2.8, 3.74, g);
+      }
+      for (const x of [-3.6, -1.2, 1.2, 3.6]) box(.5, 6.4, .5, 0xffffff, x, 3.2, 4.3, g);
+      box(8.6, .5, 1.6, 0xffffff, 0, 6.5, 3.9, g);
+      box(2, 3, .08, 0x6b3e2e, 0, 1.5, 4.04, g);
+      box(1.4, .14, .14, 0xffd23f, 0, 7.1, 4.08, g);
+    },
+  },
+];
 const VEHICLE_KEYS = Object.keys(VEHICLES);
 
 const isTouch = matchMedia('(pointer: coarse)').matches || new URLSearchParams(location.search).has('touch');
@@ -392,6 +520,19 @@ const ROADS = [
     normal.push(0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0);
     index.push(n, n + 2, n + 1, n, n + 3, n + 2);
   }
+  // Patches over the junctions, from a line-free part of the texture, so lane lines stop at them.
+  const h = ROAD_W / 2 + 1, y = .13;
+  for (const ring of [RING, OUTER]) {
+    for (const s of [-1, 1]) {
+      for (const [x, z] of [[0, s * ring], [s * ring, 0], [ring, s * ring], [-ring, s * ring]]) {
+        const n = pos.length / 3;
+        pos.push(x - h, y, z - h, x + h, y, z - h, x + h, y, z + h, x - h, y, z + h);
+        uv.push(.12, 0, .42, 0, .42, .3, .12, .3);
+        normal.push(0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0);
+        index.push(n, n + 2, n + 1, n, n + 3, n + 2);
+      }
+    }
+  }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
@@ -438,26 +579,29 @@ scene.add(hubRing);
 const YARD = 13, GATE = 3.5, ROOF_COLORS = [0x8a4b38, 0x56606e, 0x6b3e2e, 0x4e6a58, 0x7c3f3f];
 const HOUSES = [
   // Around the inner ring.
-  { name: 'Red',    color: 0xe0524d, x: -30,  z: -62,  dx: 0,  dz: 1,  dog: 'small' },
+  { name: 'Red',    color: 0xe0524d, x: -30,  z: -62,  dx: 0,  dz: 1,  dog: 'tiny' },
   { name: 'Blue',   color: 0x4d8de0, x: 30,   z: -62,  dx: 0,  dz: 1,  dog: null },
-  { name: 'Yellow', color: 0xe8c23c, x: 62,   z: -30,  dx: -1, dz: 0,  dog: 'big' },
+  { name: 'Yellow', color: 0xe8c23c, x: 62,   z: -30,  dx: -1, dz: 0,  dog: 'medium' },
   { name: 'Orange', color: 0xf0883a, x: 62,   z: 30,   dx: -1, dz: 0,  dog: null },
   { name: 'Green',  color: 0x3fae68, x: 30,   z: 62,   dx: 0,  dz: -1, dog: null },
   { name: 'Pink',   color: 0xe77fb3, x: -30,  z: 62,   dx: 0,  dz: -1, dog: 'small' },
   { name: 'Purple', color: 0x8d63d6, x: -62,  z: 30,   dx: 1,  dz: 0,  dog: null },
-  { name: 'Teal',   color: 0x2fb5a8, x: -62,  z: -30,  dx: 1,  dz: 0,  dog: 'small' },
+  { name: 'Teal',   color: 0x2fb5a8, x: -62,  z: -30,  dx: 1,  dz: 0,  dog: 'tiny' },
   // Just inside the outer ring, gates facing it.
   { name: 'Coral',  color: 0xf0776a, x: -30,  z: -96,  dx: 0,  dz: -1, dog: null },
   { name: 'Lime',   color: 0x9ccc3c, x: 96,   z: -30,  dx: 1,  dz: 0,  dog: 'big' },
-  { name: 'Navy',   color: 0x3a5a9a, x: 30,   z: 96,   dx: 0,  dz: 1,  dog: 'small' },
+  { name: 'Navy',   color: 0x3a5a9a, x: 30,   z: 96,   dx: 0,  dz: 1,  dog: 'medium' },
   { name: 'Peach',  color: 0xf4b183, x: -96,  z: 30,   dx: -1, dz: 0,  dog: null },
   // Outside the outer ring.
-  { name: 'Gold',   color: 0xd6a520, x: 143,  z: -70,  dx: -1, dz: 0,  dog: 'big' },
+  { name: 'Gold',   color: 0xd6a520, x: 143,  z: -70,  dx: -1, dz: 0,  dog: 'giant' },
   { name: 'Mint',   color: 0x7fd8b0, x: 143,  z: 70,   dx: -1, dz: 0,  dog: null },
   { name: 'Rose',   color: 0xd85a7f, x: 70,   z: 143,  dx: 0,  dz: -1, dog: 'small' },
   { name: 'Sky',    color: 0x6cc6ff, x: -70,  z: 143,  dx: 0,  dz: -1, dog: 'big' },
   { name: 'Lilac',  color: 0xb79ae0, x: -143, z: 70,   dx: 1,  dz: 0,  dog: null },
-  { name: 'Brown',  color: 0x9a6a45, x: -143, z: -70,  dx: 1,  dz: 0,  dog: 'small' },
+  { name: 'Brown',  color: 0x9a6a45, x: -143, z: -70,  dx: 1,  dz: 0,  dog: 'giant' },
+  { name: 'Indigo', color: 0x5560c8, x: -70,  z: -143, dx: 0,  dz: 1,  dog: 'medium' },
+  { name: 'Cream',  color: 0xeadfba, x: 0,    z: -143, dx: 0,  dz: 1,  dog: null },
+  { name: 'Slate',  color: 0x6c7a89, x: 70,   z: -143, dx: 0,  dz: 1,  dog: 'giant' },
 ];
 
 function buildHouse(h) {
@@ -513,39 +657,19 @@ function buildHouse(h) {
 }
 HOUSES.forEach(buildHouse);
 
-// Home Row: seven lots on the north side, one per player.
-const LOT_COLORS = [0xe0524d, 0x4d8de0, 0xe8c23c, 0x3fae68, 0xe77fb3, 0x8d63d6, 0xf0883a];
-const LOTS = LOT_COLORS.map((color, i) => ({ name: `Home ${i + 1}`, color, x: -108 + i * 36, z: -143, dx: 0, dz: 1, dog: null }));
 const ringGeometry = new THREE.RingGeometry(2.6, 3.1, 32).rotateX(-Math.PI / 2);
-const ringMaterial = color => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .8, side: THREE.DoubleSide, toneMapped: false });
-const claimRingMaterial = ringMaterial(0xffffff);
-
-for (const l of LOTS) {
-  buildHouse(l);
-  // Garage: on the house's east side, with its door facing the yard.
-  const gx = l.x + 9.75, gz = l.z - 6.5;
-  block(5.5, 4, 8, 0xd8d8dc, gx, 2, gz);
-  block(6.1, .4, 8.6, 0x56606e, gx, 4.2, gz);
-  block(4.2, 3, .1, 0x6a6f78, gx, 1.5, gz + 4.03);
-  addCollider(gx, gz, 2.75, 4);
-  block(9.75, .06, 4, PATH, l.x + 4.9, .02, l.z);
-  l.garage = new THREE.Vector3(gx, 0, l.z);
-  l.gate = new THREE.Vector3(l.x, 0, l.z + YARD + 2);
-  l.signMaterial = sign([l.name.toUpperCase(), 'OPEN'], '#fff', '#222', 5.6, 2.8, l.x, 6, l.z + YARD, 0);
-  l.claimRing = new THREE.Mesh(ringGeometry, claimRingMaterial);
-  l.claimRing.position.set(l.gate.x, .2, l.gate.z);
-  scene.add(l.claimRing);
-}
-const garageRing = new THREE.Mesh(ringGeometry, ringMaterial(0x6cc6ff));
-garageRing.visible = false;
-scene.add(garageRing);
+const homeRing = new THREE.Mesh(ringGeometry, new THREE.MeshBasicMaterial({
+  color: 0x6cc6ff, transparent: true, opacity: .8, side: THREE.DoubleSide, toneMapped: false,
+}));
+homeRing.visible = false;
+scene.add(homeRing);
 
 // Seeded so the map is the same on every visit, and players can learn it.
 let seed = 20261102;
 const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
 
 // Spots with something on them, as [x, z, half size], so trees keep off.
-const taken = [...HOUSES, ...LOTS].map(h => [h.x, h.z, YARD + 12]);
+const taken = HOUSES.map(h => [h.x, h.z, YARD + 12]);
 
 function addTower(x, z, w, d, floors, color) {
   for (let f = 0; f < floors; f++) walls.push({ w, h: 6, d, color, x, y: 3 + f * 6, z });
@@ -586,15 +710,48 @@ for (const [x, z, face] of [[96, 30, 1], [-96, -30, -1]]) {
 for (const ring of [RING, OUTER]) {
   const side = ROAD_W / 2 + .9, step = ring === RING ? 24 : 42;
   for (let a = -ring + 12; a < ring - 6; a += step) {
+    if (Math.abs(a) < ROAD_W) continue; // That's a junction with a spoke road.
     for (const s of [-1, 1]) {
       for (const [x, z, ox, oz] of [[a, s * (ring + side), 0, -s], [s * (ring + side), a, -s, 0]]) {
         block(.25, 5.2, .25, 0x4a5058, x, 2.6, z);
         block(ox ? 1.4 : .16, .16, oz ? 1.4 : .16, 0x4a5058, x + ox * .7, 5.2, z + oz * .7);
-        bulbs.push({ w: .55, h: .25, d: .55, color: 0xffffff, x: x + ox * 1.3, y: 5.05, z: z + oz * 1.3 });
+        bulbs.push({ w: .4, h: .16, d: .4, color: 0xffffff, x: x + ox * 1.3, y: 5.05, z: z + oz * 1.3 });
       }
     }
   }
 }
+
+const onRoad = (x, z, margin) => ROADS.some(([w, d, rx, rz]) => Math.abs(x - rx) < w / 2 + margin && Math.abs(z - rz) < d / 2 + margin);
+const isTaken = (x, z, margin) => taken.some(([tx, tz, r]) => Math.abs(x - tx) < r + margin && Math.abs(z - tz) < r + margin);
+
+// Seven home sites scattered across the map, one per player, each facing the middle of it.
+const LOTS = [];
+for (let i = 0; i < 20000 && LOTS.length < 7; i++) {
+  const x = Math.round((rnd() - .5) * (EDGE * 2 - 32)), z = Math.round((rnd() - .5) * (EDGE * 2 - 32));
+  if (isTaken(x, z, 6) || onRoad(x, z, 15) || LOTS.some(l => Math.hypot(l.x - x, l.z - z) < 60)) continue;
+  const dx = Math.abs(x) > Math.abs(z) ? -Math.sign(x) : 0, dz = dx ? 0 : -Math.sign(z);
+  const l = { name: `Home ${LOTS.length + 1}`, x, z, dx, dz, step: new THREE.Vector3(x + dx * 8, 0, z + dz * 8) };
+  block(dx ? 18 : 24, .05, dx ? 24 : 18, 0xb9a27a, x, .03, z);
+  taken.push([x, z, 14]);
+  l.collider = { x0: x, x1: x, z0: z, z1: z };
+  colliders.push(l.collider);
+  l.group = new THREE.Group();
+  l.group.position.set(x, 0, z);
+  l.group.rotation.y = Math.atan2(dx, dz);
+  scene.add(l.group);
+  const sx = x + dx * 7 + dz * 5.5, sz = z + dz * 7 - dx * 5.5;
+  block(.25, 2.4, .25, 0x7a5a3c, sx, 1.2, sz);
+  l.signMaterial = sign([l.name.toUpperCase(), 'OPEN'], '#fff', '#222', 3.2, 1.6, sx, 3.2, sz, Math.atan2(dx, dz));
+  LOTS.push(l);
+}
+
+function showLotHome(l, level) {
+  const home = HOMES[level], [w, d] = l.dx ? [...home.size].reverse() : home.size;
+  l.group.clear();
+  home.model(l.group);
+  Object.assign(l.collider, { x0: l.x - w, x1: l.x + w, z0: l.z - d, z1: l.z + d });
+}
+LOTS.forEach(l => showLotHome(l, 0));
 
 const TREE_LEAVES = [0x3f9b52, 0x358a48, 0x4caf5f, 0x2f7f45];
 const TREES = [];
@@ -607,12 +764,10 @@ function addTree(x, z) {
   TREES.push([x, z]);
 }
 {
-  const onRoad = (x, z) => ROADS.some(([w, d, rx, rz]) => Math.abs(x - rx) < w / 2 + 6 && Math.abs(z - rz) < d / 2 + 6);
-  const isTaken = (x, z) => taken.some(([tx, tz, r]) => Math.abs(x - tx) < r && Math.abs(z - tz) < r);
   let placed = 0;
   for (let i = 0; i < 1500 && placed < 110; i++) {
     const x = (rnd() - .5) * (EDGE * 2 - 8), z = (rnd() - .5) * (EDGE * 2 - 8);
-    if (isTaken(x, z) || onRoad(x, z) || Math.hypot(x, z) < 18) continue;
+    if (isTaken(x, z, 0) || onRoad(x, z, 6) || Math.hypot(x, z) < 18) continue;
     addTree(x, z);
     placed++;
   }
@@ -702,7 +857,7 @@ function updateDay(dt) {
   sunDir.set(Math.cos(az) * .8, Math.max(.45, height), Math.sin(az) * .8).normalize();
 
   const night = 1 - smooth(.0, .25, height);
-  wallMaterial.emissiveIntensity = night * 1.5;
+  wallMaterial.emissiveIntensity = night * 1.1;
   bulbMaterial.color.setRGB(.25 + night * .75, .25 + night * .7, .25 + night * .45);
   glowMaterial.opacity = night * .9;
   poolMaterial.opacity = night * .4;
@@ -791,14 +946,14 @@ function bite(d) {
   player.stun = d.stun;
   shake = .35;
   d.cd = 1.2;
-  if (order) {
-    order.fresh = Math.max(0, order.fresh - d.damage);
-    toast(`${d.name} bit you! -${d.damage}%`);
-  } else toast(`${d.name} bit you!`);
+  for (const o of orders) o.fresh = Math.max(0, o.fresh - d.damage);
+  toast(orders.length ? `${d.name} bit you! -${d.damage}%` : `${d.name} bit you!`);
 }
 
 function updateDog(d, dt) {
   const y = d.house.yard, chasing = inYard(player.pos, y);
+  // Too far off to make out, so not worth a dozen draw calls each.
+  d.group.visible = Math.hypot(player.pos.x - d.pos.x, player.pos.z - d.pos.z) < 130;
   if (chasing && !d.alert) toast('WOOF! Run!');
   d.alert = chasing;
   d.mark.visible = chasing;
@@ -834,14 +989,27 @@ function updateDog(d, dt) {
   d.group.position.y = chasing ? Math.abs(Math.sin(d.phase)) * .25 : 0;
 
   const touching = Math.hypot(player.pos.x - d.pos.x, player.pos.z - d.pos.z) < 1.1 + d.r;
-  if (chasing && touching && d.cd <= 0 && player.pos.y < .7) bite(d);
+  // The bigger the dog, the higher you have to jump to clear it.
+  if (chasing && touching && d.cd <= 0 && player.pos.y < .5 + d.scale * .25) bite(d);
 }
 
 // ---------- Save ----------
 // Lives in this browser for now. Anything unexpected in it just means a new game.
 const SAVE_KEY = 'delivery-game-save-v1';
+function cleanParts(saved) {
+  const parts = {};
+  for (const k of VEHICLE_KEYS) {
+    parts[k] = {};
+    for (const [p, def] of Object.entries(VEHICLES[k].parts)) {
+      const n = saved?.[k]?.[p];
+      parts[k][p] = Number.isInteger(n) ? clamp(n, 0, def.prices.length) : 0;
+    }
+  }
+  return parts;
+}
+
 function loadSave() {
-  const fresh = { name: '', slot: null, cash: 0, delivered: 0, owned: [], equipped: null };
+  const fresh = { name: '', slot: null, cash: 0, delivered: 0, owned: [], equipped: null, homeLevel: 0, parts: cleanParts() };
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY));
     if (!s || typeof s !== 'object') return fresh;
@@ -853,6 +1021,8 @@ function loadSave() {
       delivered: Number.isFinite(s.delivered) && s.delivered > 0 ? Math.floor(s.delivered) : 0,
       owned,
       equipped: owned.includes(s.equipped) ? s.equipped : null,
+      homeLevel: HOMES[s.homeLevel] ? s.homeLevel : 0,
+      parts: cleanParts(s.parts),
     };
   } catch {
     return fresh;
@@ -868,73 +1038,91 @@ function saveGame() {
 }
 
 // ---------- Orders ----------
-let order = null, lastHouse = null;
-const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 16, 16, 1, true),
-  new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: .35, side: THREE.DoubleSide, depthWrite: false }));
-beam.visible = false;
-scene.add(beam);
+const orders = [];
+let lastHouse = null;
+const beamGeometry = new THREE.CylinderGeometry(1.4, 1.4, 16, 16, 1, true);
+const beamMaterial = new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: .35, side: THREE.DoubleSide, depthWrite: false });
+const beams = [0, 1, 2, 3].map(() => {
+  const b = new THREE.Mesh(beamGeometry, beamMaterial);
+  b.visible = false;
+  scene.add(b);
+  return b;
+});
 
 const nearHub = () => Math.hypot(player.pos.x - HUB.x, player.pos.z - HUB.z) < HUB_R;
+const capacity = () => rideStats(save.equipped).carry;
+const nearestOrder = () => orders.reduce((best, o) => {
+  const d = Math.hypot(player.pos.x - o.house.step.x, player.pos.z - o.house.step.z);
+  return !best || d < best.d ? { o, d } : best;
+}, null)?.o;
+
+function syncCarry() {
+  const parcel = orders.some(o => !o.food);
+  carryParcel.visible = parcel;
+  carryFood.visible = orders.some(o => o.food);
+  carryFood.position.y = parcel ? 2.22 : 1.75;
+  hubRing.visible = orders.length < capacity();
+}
 
 function takeOrder() {
-  if (order || !nearHub()) return;
-  // Dog yards come up about twice as often: they're what this spike is testing.
-  const pool = HOUSES.flatMap(h => (h.dog ? [h, h] : [h])).filter(h => h !== lastHouse);
+  if (orders.length >= capacity() || !nearHub()) return;
+  // Dog yards come up about twice as often: they're the fun part.
+  const pool = HOUSES.flatMap(h => (h.dog ? [h, h] : [h])).filter(h => h !== lastHouse && !orders.some(o => o.house === h));
   const house = pool[Math.floor(Math.random() * pool.length)];
   // Time is what a runner needs to get there plus a margin, so faster vehicles keep more of it as tip.
   const food = Math.random() < .6, dist = Math.hypot(house.step.x - HUB.x, house.step.z - HUB.z);
   const max = food ? FOOD_TIME + dist / RUN * 1.25 : PARCEL_TIME + dist / RUN * 1.6;
   const pay = (food ? FOOD_PAY : PARCEL_PAY) + Math.round(Math.max(0, dist - 60) * FAR_PAY);
-  order = { food, house, max, left: max, fresh: 100, pay };
-  lastHouse = house;
-  carryFood.visible = food;
-  carryParcel.visible = !food;
+  const beam = beams.find(b => !b.visible);
   beam.position.set(house.step.x, 8, house.step.z);
   beam.visible = true;
-  hubRing.visible = false;
-  $('orderName').textContent = `${food ? 'Food' : 'Parcel'} to ${house.name} house`;
-  $('freshLabel').textContent = food ? 'Freshness' : 'Condition';
+  orders.push({ food, house, max, left: max, fresh: 100, pay, beam });
+  lastHouse = house;
+  syncCarry();
   toast(food ? 'Hot food! Go go go!' : 'Parcel: heavy, so you move slower');
-  $('hint').textContent = '';
 }
 
-function endOrder() {
-  order = null;
-  carryFood.visible = carryParcel.visible = false;
-  beam.visible = false;
-  hubRing.visible = true;
+function endOrder(o) {
+  orders.splice(orders.indexOf(o), 1);
+  o.beam.visible = false;
+  syncCarry();
 }
 
 function updateOrder(dt) {
-  if (!order) return;
-  order.left -= dt;
-  if (order.left <= 0) {
-    toast('Too late! Order cancelled');
-    endOrder();
-    return;
-  }
-  if (Math.hypot(player.pos.x - order.house.step.x, player.pos.z - order.house.step.z) < 2.4) {
-    const tip = Math.round(order.pay * 1.5 * (order.left / order.max) * (order.fresh / 100));
-    save.cash += order.pay + tip;
-    save.delivered++;
-    saveGame();
-    toast(`+₱${order.pay + tip} (tip ₱${tip})`);
-    endOrder();
+  for (const o of [...orders]) {
+    o.left -= dt;
+    if (o.left <= 0) {
+      toast('Too late! Order cancelled');
+      endOrder(o);
+    } else if (Math.hypot(player.pos.x - o.house.step.x, player.pos.z - o.house.step.z) < 2.4) {
+      const tip = Math.round(o.pay * 1.5 * (o.left / o.max) * (o.fresh / 100));
+      const total = Math.round((o.pay + tip) * (1 + HOMES[save.homeLevel].bonus));
+      save.cash += total;
+      save.delivered++;
+      saveGame();
+      toast(`+₱${total} (tip ₱${tip})`);
+      endOrder(o);
+    }
   }
 }
 
-// ---------- Home and garage ----------
+// ---------- Home and upgrades ----------
 const myLot = () => LOTS[save.slot];
 const nearSpot = (spot, r) => Math.hypot(player.pos.x - spot.x, player.pos.z - spot.z) < r;
 
 function showHome() {
-  for (const l of LOTS) l.claimRing.visible = save.slot === null;
   const l = myLot();
-  if (!l) return;
+  showLotHome(l, save.homeLevel);
   l.signMaterial.map.dispose();
-  l.signMaterial.map = textTexture([l.name.toUpperCase(), save.name], '#fff', '#222');
-  garageRing.position.set(l.garage.x, .2, l.garage.z);
-  garageRing.visible = true;
+  l.signMaterial.map = textTexture([save.name, HOMES[save.homeLevel].name], '#fff', '#222');
+  homeRing.position.set(l.step.x, .2, l.step.z);
+  homeRing.visible = true;
+}
+
+function goHome() {
+  player.pos.copy(myLot().step);
+  body.rotation.y = Math.atan2(myLot().dx, myLot().dz);
+  yaw = body.rotation.y + Math.PI;
 }
 
 function claimLot(lot, name) {
@@ -942,26 +1130,37 @@ function claimLot(lot, name) {
   save.name = name;
   saveGame();
   showHome();
+  goHome();
   toast(`Welcome home, ${name}!`);
 }
 
 const claimBox = $('claimBox'), garageBox = $('garageBox');
 const dialogOpen = () => claimBox.open || garageBox.open;
-let claiming = null;
-function openClaim(lot) {
-  claiming = lot;
-  claimBox.returnValue = '';
-  $('claimTitle').textContent = `Claim ${lot.name}?`;
-  $('nameInput').value = save.name;
-  for (const k in keys) keys[k] = false;
-  claimBox.showModal();
-}
 claimBox.addEventListener('close', () => {
-  const name = $('nameInput').value.trim();
-  if (claimBox.returnValue === 'ok' && name) claimLot(claiming, name);
+  claimLot(LOTS[Math.floor(Math.random() * LOTS.length)], $('nameInput').value.trim() || 'Rider');
 });
 
+function buyHome() {
+  const next = HOMES[save.homeLevel + 1];
+  if (!next || save.cash < next.price) return false;
+  save.cash -= next.price;
+  save.homeLevel++;
+  saveGame();
+  showHome();
+  toast(`${next.name} built!`);
+  return true;
+}
+
 const nextVehicle = () => VEHICLE_KEYS.find(k => !save.owned.includes(k));
+
+function rideStats(key) {
+  if (!key) return { name: 'Running', speed: RUN, accel: 30, carry: 1, seat: 0 };
+  const v = VEHICLES[key], lv = save.parts[key], stats = { name: v.name, speed: v.speed, accel: v.accel, carry: 1, seat: v.seat(lv) };
+  for (const [p, def] of Object.entries(v.parts)) {
+    for (const stat of ['speed', 'accel', 'carry']) stats[stat] += (def[stat] || 0) * lv[p];
+  }
+  return stats;
+}
 
 function buyVehicle(key) {
   const v = VEHICLES[key];
@@ -974,29 +1173,74 @@ function buyVehicle(key) {
   return true;
 }
 
+function buyPart(key, part) {
+  const lv = save.parts[key], price = VEHICLES[key].parts[part].prices[lv[part]];
+  if (!save.owned.includes(key) || price === undefined || save.cash < price) return false;
+  save.cash -= price;
+  lv[part]++;
+  if (save.equipped === key) setVehicle(key);
+  saveGame();
+  toast(`${VEHICLES[key].parts[part].name} fitted!`);
+  return true;
+}
+
+// The cheapest next thing you could buy right now, for the nudge in the hint line.
+function affordable() {
+  const v = VEHICLES[nextVehicle()], home = HOMES[save.homeLevel + 1], ride = VEHICLES[save.equipped];
+  const options = [v, home].filter(Boolean);
+  for (const [p, def] of Object.entries(ride?.parts || {})) {
+    const price = def.prices[save.parts[save.equipped][p]];
+    if (price !== undefined) options.push({ name: def.name, price });
+  }
+  return options.filter(o => o.price <= save.cash).sort((a, b) => a.price - b.price)[0];
+}
+
 function renderGarage() {
   $('garageCash').textContent = `You have ₱${save.cash}`;
-  const row = (name, speed, label, enabled, onClick) => {
+  const heading = text => {
+    const h = document.createElement('h3');
+    h.textContent = text;
+    return h;
+  };
+  const row = (name, sub, label, enabled, onClick) => {
     const r = document.createElement('div'), b = document.createElement('button');
     r.className = 'veh';
     r.append(document.createElement('b'), document.createElement('span'), b);
     r.children[0].textContent = name;
-    r.children[1].textContent = `${speed} m/s`;
+    r.children[1].textContent = sub;
     b.textContent = label;
     b.disabled = !enabled;
     b.onclick = () => { onClick(); renderGarage(); };
     return r;
   };
   const use = key => { setVehicle(key); saveGame(); };
-  $('garageList').replaceChildren(
-    row('Running', RUN, save.equipped ? 'Use' : 'Using', !!save.equipped, () => use(null)),
+  const rideLine = key => { const r = rideStats(key); return `${r.speed} m/s · carries ${r.carry}`; };
+  const home = HOMES[save.homeLevel], nextHome = HOMES[save.homeLevel + 1];
+  const list = [
+    heading('House'),
+    row(home.name, `+${Math.round(home.bonus * 100)}% pay${nextHome ? ` · next: ${nextHome.name}` : ''}`,
+      nextHome ? `₱${nextHome.price}` : 'Max', nextHome && save.cash >= nextHome.price, buyHome),
+    heading('Ride'),
+    row('Running', rideLine(null), save.equipped ? 'Use' : 'Using', !!save.equipped, () => use(null)),
     ...VEHICLE_KEYS.map(k => {
       const v = VEHICLES[k];
-      if (save.owned.includes(k)) return row(v.name, v.speed, save.equipped === k ? 'Using' : 'Use', save.equipped !== k, () => use(k));
-      if (k === nextVehicle()) return row(v.name, v.speed, `Buy ₱${v.price}`, save.cash >= v.price, () => buyVehicle(k));
-      return row(v.name, v.speed, `Locked`, false);
+      if (save.owned.includes(k)) return row(v.name, rideLine(k), save.equipped === k ? 'Using' : 'Use', save.equipped !== k, () => use(k));
+      const line = `${v.speed} m/s · carries 1`;
+      if (k === nextVehicle()) return row(v.name, line, `₱${v.price}`, save.cash >= v.price, () => buyVehicle(k));
+      return row(v.name, line, 'Locked', false);
     }),
-  );
+  ];
+  const k = save.equipped;
+  if (k) {
+    list.push(heading(`${VEHICLES[k].name} upgrades`));
+    for (const [p, def] of Object.entries(VEHICLES[k].parts)) {
+      const level = save.parts[k][p], price = def.prices[level];
+      const gives = def.carry ? `+${def.carry} order${def.carry > 1 ? 's' : ''}` : def.speed ? `+${def.speed} m/s` : `+${def.accel} grip`;
+      list.push(row(def.name, `Level ${level} of ${def.prices.length} · ${gives}`,
+        price === undefined ? 'Max' : `₱${price}`, price !== undefined && save.cash >= price, () => buyPart(k, p)));
+    }
+  }
+  $('garageList').replaceChildren(...list);
 }
 
 function openGarage() {
@@ -1007,41 +1251,38 @@ function openGarage() {
 
 // What the action button would do right here.
 function actionSpot() {
-  if (!order && nearHub()) return 'ORDER';
-  if (save.slot === null && LOTS.some(l => nearSpot(l.gate, 3.6))) return 'CLAIM';
-  if (save.slot !== null && nearSpot(myLot().garage, 3.6)) return 'GARAGE';
+  if (orders.length < capacity() && nearHub()) return 'ORDER';
+  if (myLot() && nearSpot(myLot().step, 3.6)) return 'HOME';
   return null;
 }
 
 function action() {
   const spot = actionSpot();
   if (spot === 'ORDER') takeOrder();
-  else if (spot === 'CLAIM') openClaim(LOTS.find(l => nearSpot(l.gate, 3.6)));
-  else if (spot === 'GARAGE') openGarage();
+  else if (spot === 'HOME') openGarage();
 }
 
 // A vehicle rides under the player, or waits at the gate while they walk a yard.
-const rideGroups = {};
-let rideGroup = null, parked = false;
+let rideGroup = null, rideNow = null, parked = false;
 
 function setVehicle(key) {
   rideGroup?.removeFromParent();
   save.equipped = key;
   parked = false;
-  rideGroup = null;
-  if (!key) return;
-  if (!rideGroups[key]) {
-    rideGroups[key] = new THREE.Group();
-    VEHICLES[key].model(rideGroups[key]);
+  rideGroup = rideNow = null;
+  if (key) {
+    rideNow = rideStats(key);
+    rideGroup = new THREE.Group();
+    VEHICLES[key].model(rideGroup, save.parts[key]);
+    mountVehicle();
   }
-  rideGroup = rideGroups[key];
-  mountVehicle();
+  syncCarry();
 }
 
 function mountVehicle() {
   parked = false;
   body.add(rideGroup);
-  rideGroup.position.set(0, -VEHICLES[save.equipped].seat, 0);
+  rideGroup.position.set(0, -rideNow.seat, 0);
   rideGroup.rotation.y = 0;
 }
 
@@ -1156,13 +1397,13 @@ function movePlayer(dt) {
   // Customer yards are on foot: that's where the dogs are.
   const inCustomerYard = HOUSES.some(h => inYard(p.pos, h.yard));
   if (save.equipped && inCustomerYard !== parked) inCustomerYard ? parkVehicle() : mountVehicle();
-  const ride = parked ? null : VEHICLES[save.equipped];
+  const ride = parked ? null : rideNow;
 
   const moving = Math.hypot(ix, iz) > .05;
   const sprinting = !ride && (keys.ShiftLeft || keys.ShiftRight || sprintHeld) && moving && p.stamina > 0;
   p.stamina = clamp(p.stamina + (sprinting ? -30 : 18) * dt, 0, 100);
-  if (save.slot !== null && nearSpot(myLot().step, 2.4)) p.stamina = Math.min(100, p.stamina + 60 * dt);
-  const speed = (ride ? ride.speed : sprinting ? SPRINT : RUN) * (order && !order.food ? PARCEL_SLOW : 1);
+  if (myLot() && nearSpot(myLot().step, 3.6)) p.stamina = Math.min(100, p.stamina + 60 * dt);
+  const speed = (ride ? ride.speed : sprinting ? SPRINT : RUN) * (orders.some(o => !o.food) ? PARCEL_SLOW : 1);
 
   // On a phone the left thumb also steers the camera a little, so you can play one-handed.
   if (stick.id !== null && lookId === null) yaw -= ix * 1.1 * dt;
@@ -1204,7 +1445,7 @@ function movePlayer(dt) {
   const seated = ride && ride.seat > .5, swing = ride ? 0 : Math.sin(p.phase) * .9 * p.moving;
   legL.rotation.x = seated ? -1.25 : swing;
   legR.rotation.x = seated ? -1.25 : -swing;
-  const reach = order || seated;
+  const reach = orders.length || seated;
   armL.rotation.x = reach ? -1.5 : -swing;
   armR.rotation.x = reach ? -1.5 : swing;
   body.position.copy(p.pos);
@@ -1248,32 +1489,32 @@ function toast(text) {
 function updateHud(now) {
   $('cash').textContent = `₱${save.cash}`;
   $('staminaBar').firstElementChild.style.transform = `scaleX(${player.stamina / 100})`;
-  $('job').style.visibility = order ? 'visible' : 'hidden';
+  $('job').style.visibility = orders.length ? 'visible' : 'hidden';
   const spot = actionSpot();
   $('btnAction').classList.toggle('ready', !!spot);
   $('btnAction').textContent = spot || 'ACTION';
   hubRing.scale.setScalar(1 + Math.sin(now / 250) * .04);
-  beam.material.opacity = .28 + Math.sin(now / 200) * .1;
-  if (!order) {
-    const press = isTouch ? 'Tap' : 'Press E:';
-    const next = VEHICLES[nextVehicle()];
-    $('hint').textContent =
-      spot === 'ORDER' ? `${press} take an order` :
-      spot === 'CLAIM' ? `${press} claim this home` :
-      spot === 'GARAGE' ? `${press} open your garage` :
-      !save.delivered ? (isTouch ? 'Left thumb moves, right thumb looks. Go to the green ring' : 'WASD move · Shift sprint · Space jump · drag to look · green ring for orders') :
-      save.slot === null ? 'Claim a free home on Home Row, at the north edge of the map' :
-      next && save.cash >= next.price ? `You can afford a ${next.name}! Head to your garage` : '';
-    return;
-  }
-  const d = order.house.step, dx = d.x - player.pos.x, dz = d.z - player.pos.z;
+  beamMaterial.opacity = .28 + Math.sin(now / 200) * .1;
+  const press = isTouch ? 'Tap' : 'Press E:', deal = affordable();
+  $('hint').textContent =
+    spot === 'ORDER' ? `${press} take an order${orders.length ? ` (${orders.length} of ${capacity()} carried)` : ''}` :
+    spot === 'HOME' ? `${press} open your home` :
+    orders.length ? '' :
+    !save.delivered ? (isTouch ? 'Left thumb moves, right thumb looks. Follow the green dot for orders' : 'WASD move · Shift sprint · Space jump · drag to look · follow the green dot for orders') :
+    deal ? `You can afford: ${deal.name}. Follow the blue dot home` : '';
+  const o = nearestOrder();
+  if (!o) return;
+  const d = o.house.step, dx = d.x - player.pos.x, dz = d.z - player.pos.z;
   const s = Math.sin(yaw), c = Math.cos(yaw);
   const ahead = dx * -s + dz * -c, right = dx * c + dz * -s;
   $('arrow').style.transform = `rotate(${Math.atan2(right, ahead)}rad)`;
   $('dist').textContent = `${Math.round(Math.hypot(dx, dz))}m`;
-  $('timeLeft').textContent = `${Math.ceil(order.left)}s`;
-  $('timeBar').firstElementChild.style.transform = `scaleX(${order.left / order.max})`;
-  $('freshBar').firstElementChild.style.transform = `scaleX(${order.fresh / 100})`;
+  $('orderName').textContent = `${o.food ? 'Food' : 'Parcel'} to ${o.house.name} house`;
+  $('freshLabel').textContent = o.food ? 'Freshness' : 'Condition';
+  $('timeLeft').textContent = `${Math.ceil(o.left)}s`;
+  $('timeBar').firstElementChild.style.transform = `scaleX(${o.left / o.max})`;
+  $('freshBar').firstElementChild.style.transform = `scaleX(${o.fresh / 100})`;
+  $('more').textContent = orders.filter(x => x !== o).map(x => `+ ${x.house.name} ${Math.ceil(x.left)}s`).join('  ');
 }
 
 // ---------- Minimap ----------
@@ -1303,8 +1544,8 @@ function drawMapLayer() {
     x.fillStyle = h.dog ? '#d9866b' : '#a6dd9f';
     x.fillRect(y.x0, y.z0, y.x1 - y.x0, y.z1 - y.z0);
   }
-  x.fillStyle = '#bcd7f2';
-  for (const l of LOTS) x.fillRect(l.x - YARD, l.z - YARD, YARD * 2, YARD * 2);
+  x.fillStyle = '#b98a56';
+  for (const l of LOTS) x.fillRect(l.x - 6, l.z - 6, 12, 12);
   for (const w of walls) {
     x.fillStyle = hex(w.color);
     x.fillRect(w.x - w.w / 2, w.z - w.d / 2, w.w, w.d);
@@ -1354,17 +1595,13 @@ function updateMini(now) {
     mx.lineWidth = size / 110;
     mx.stroke();
   };
-  for (const d of dogs) marker(...toMini(d.pos.x, d.pos.z), dot * .7, '#e0352b');
-  if (save.slot === null) {
-    for (const l of LOTS) marker(...toMini(l.gate.x, l.gate.z, l === LOTS[3]), dot, '#fff');
-  } else {
-    marker(...toMini(myLot().x, myLot().z, true), dot * 1.5, '#2f7de0');
-  }
-  if (order) {
-    const t = order.house.step;
-    marker(...toMini(t.x, t.z, true), dot * (1.6 + Math.sin(now / 160) * .35), '#ffd23f');
-  } else {
-    marker(...toMini(HUB.x, HUB.z, true), dot * 1.4, '#35d873');
+  for (const d of dogs) marker(...toMini(d.pos.x, d.pos.z), dot * (.4 + d.scale * .4), '#e0352b');
+  if (myLot()) marker(...toMini(myLot().x, myLot().z, true), dot * 1.5, '#2f7de0');
+  if (orders.length < capacity()) marker(...toMini(HUB.x, HUB.z, true), dot * 1.4, '#35d873');
+  const first = nearestOrder();
+  for (const o of orders) {
+    const t = o.house.step;
+    marker(...toMini(t.x, t.z, true), o === first ? dot * (1.6 + Math.sin(now / 160) * .35) : dot * 1.2, '#ffd23f');
   }
 
   // Player arrow, pointing the way the character faces.
@@ -1395,10 +1632,14 @@ function updateMini(now) {
   mx.fillText('N', nx, ny);
 }
 
-// Back home if there's a home to come back to.
-showHome();
+// Back home if there's a home to come back to. First timers get a name prompt, then a box.
 setVehicle(save.equipped);
-if (myLot()) player.pos.set(myLot().step.x, 0, myLot().step.z + 2);
+if (myLot()) {
+  showHome();
+  goHome();
+} else {
+  claimBox.showModal();
+}
 
 let last = performance.now();
 renderer.setAnimationLoop(now => {
@@ -1418,8 +1659,8 @@ renderer.setAnimationLoop(now => {
 window.game = {
   player, dogs, HOUSES, takeOrder, renderer, walls, blocks,
   get dayTime() { return dayTime; }, set dayTime(v) { dayTime = v; },
-  LOTS, save, action, actionSpot, buyVehicle, setVehicle, claimLot,
-  get order() { return order; }, get cash() { return save.cash; }, get delivered() { return save.delivered; },
+  LOTS, HOMES, VEHICLES, DOG_TYPES, orders, save, action, actionSpot, capacity, rideStats,
+  buyVehicle, buyPart, buyHome, setVehicle, claimLot, showHome, get order() { return orders[0]; }, get cash() { return save.cash; }, get delivered() { return save.delivered; },
   get parked() { return parked; },
   get yaw() { return yaw; }, set yaw(v) { yaw = v; },
 };
