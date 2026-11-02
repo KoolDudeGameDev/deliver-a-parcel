@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { clamp } from './util.js';
 import { scene, camera, hemi, sun, skyUniforms, skyDome } from './engine.js';
-import { wallMaterial, bulbMaterial, cloudMaterial, cloudMesh, glowMaterial, poolMaterial, lampGlow, lampPools } from './world.js';
+import { wallMaterial, bulbMaterial, cloudMaterial, cloudMesh, glowMaterial, poolMaterial, lampGlow, lampPools, candleMaterial, candleGlow } from './world.js';
 
 const DAY_LENGTH = 360, SUN_INTENSITY = 2.1, MOON_INTENSITY = .35;
 const DAY_TOP = new THREE.Color(0x2f86e8), DAY_HOR = new THREE.Color(0xa9dcff), DUSK = new THREE.Color(0xff9a5c);
@@ -10,7 +10,7 @@ const NIGHT_TOP = new THREE.Color(0x0b1433), NIGHT_HOR = new THREE.Color(0x2a3a5
 const SUN_COLOR = new THREE.Color(0xfff0da), MOON_COLOR = new THREE.Color(0x9db8ff);
 const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const sunDir = new THREE.Vector3();
-const clock = { time: .36 };
+const clock = { time: .36, night: 0 };
 
 function updateDay(dt) {
   clock.time = (clock.time + dt / DAY_LENGTH) % 1;
@@ -27,12 +27,14 @@ function updateDay(dt) {
   const az = clock.time * Math.PI * 2;
   sunDir.set(Math.cos(az) * .8, Math.max(.45, height), Math.sin(az) * .8).normalize();
 
-  const night = 1 - smooth(.0, .25, height);
+  const night = clock.night = 1 - smooth(.0, .25, height);
   wallMaterial.emissiveIntensity = night * 1.1;
   bulbMaterial.color.setRGB(.25 + night * .75, .25 + night * .7, .25 + night * .45);
   glowMaterial.opacity = night * .9;
   poolMaterial.opacity = night * .4;
   lampGlow.visible = lampPools.visible = night > .01;
+  candleMaterial.opacity = night * (.75 + Math.sin(performance.now() / 90) * .15 + Math.sin(performance.now() / 37) * .1);
+  candleGlow.visible = night > .01;
   cloudMaterial.color.setRGB(.2 + .8 * day, .23 + .77 * day, .32 + .68 * day).lerp(DUSK, dusk * .35);
   cloudMesh.position.x = Math.sin(performance.now() / 90000) * 120;
   skyDome.position.copy(camera.position);

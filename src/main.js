@@ -16,6 +16,7 @@ import { updateCamera } from './camera.js';
 import { updateHud } from './hud.js';
 import { updateMini } from './minimap.js';
 import { citizens, updateCitizens } from './citizens.js';
+import { lady, updateGhost } from './ghost.js';
 import './input.js';
 
 // Back home if there's a home to come back to. First timers get a name prompt, then a box.
@@ -34,6 +35,7 @@ renderer.setAnimationLoop(now => {
   movePlayer(dt);
   dogs.forEach(d => updateDog(d, dt));
   updateCitizens(dt);
+  updateGhost(dt);
   updateOrder(dt);
   updateCamera(dt);
   updateDay(dt);
@@ -44,7 +46,7 @@ renderer.setAnimationLoop(now => {
 
 // Handle for scripted checks from the console.
 window.game = {
-  player, dogs, citizens, HOUSES, takeOrder, renderer, walls, blocks,
+  player, dogs, citizens, lady, clock, HOUSES, takeOrder, renderer, walls, blocks,
   get dayTime() { return clock.time; }, set dayTime(v) { clock.time = v; },
   LOTS, HOMES, VEHICLES, DOG_TYPES, orders, save, action, actionSpot, capacity, rideStats,
   buyVehicle, buyPart, buyHome, setVehicle, claimLot, showHome, get order() { return orders[0]; }, get cash() { return save.cash; }, get delivered() { return save.delivered; },

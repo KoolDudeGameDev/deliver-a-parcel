@@ -1,7 +1,8 @@
 // Taking, tracking and delivering orders.
 import * as THREE from 'three';
 import { toast } from './util.js';
-import { RUN, FOOD_TIME, PARCEL_TIME, FOOD_PAY, PARCEL_PAY, FAR_PAY } from './config.js';
+import { RUN, FOOD_TIME, PARCEL_TIME, FOOD_PAY, PARCEL_PAY, FAR_PAY, NIGHT_PAY } from './config.js';
+import { clock } from './daynight.js';
 import { scene } from './engine.js';
 import { HOMES } from './data/homes.js';
 import { HUB, HUB_R, hubRing, HOUSES } from './world.js';
@@ -66,11 +67,12 @@ function updateOrder(dt) {
       endOrder(o);
     } else if (Math.hypot(player.pos.x - o.house.step.x, player.pos.z - o.house.step.z) < 2.4) {
       const tip = Math.round(o.pay * 1.5 * (o.left / o.max) * (o.fresh / 100));
-      const total = Math.round((o.pay + tip) * (1 + HOMES[save.homeLevel].bonus));
+      const night = clock.night > .5;
+      const total = Math.round((o.pay + tip) * (1 + HOMES[save.homeLevel].bonus) * (night ? NIGHT_PAY : 1));
       save.cash += total;
       save.delivered++;
       saveGame();
-      toast(`+₱${total} (tip ₱${tip})`);
+      toast(`+₱${total} (tip ₱${tip}${night ? ', night pay' : ''})`);
       endOrder(o);
     }
   }

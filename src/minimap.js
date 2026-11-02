@@ -6,6 +6,7 @@ import { ROADS, EDGE, HUB, HOUSES, LOTS, TREES } from './world.js';
 import { body, player } from './player.js';
 import { orders, capacity, nearestOrder } from './orders.js';
 import { dogs } from './dogs.js';
+import { lady } from './ghost.js';
 import { myLot } from './home.js';
 
 const mini = $('mini'), mx = mini.getContext('2d');
@@ -86,6 +87,7 @@ function updateMini(now) {
     mx.stroke();
   };
   for (const d of dogs) marker(...toMini(d.pos.x, d.pos.z), dot * (.4 + d.scale * .4), '#e0352b');
+  if (lady.active) marker(...toMini(lady.pos.x, lady.pos.z), dot, '#ffffff');
   if (myLot()) marker(...toMini(myLot().x, myLot().z, true), dot * 1.5, '#2f7de0');
   if (orders.length < capacity()) marker(...toMini(HUB.x, HUB.z, true), dot * 1.4, '#35d873');
   const first = nearestOrder();
