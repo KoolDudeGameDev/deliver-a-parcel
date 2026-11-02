@@ -16,7 +16,7 @@ Watch out for the dogs.
 - Some parcels go to the cemetery. Park at the gate and find your way between the tombs to the
   right grave.
 - Citizens walk the sidewalks. Hit one at speed and it costs you money and damages your orders.
-- After dark, deliveries pay 30% more. The graveyard has candles lit, and something else is
+- After dark, deliveries pay 15% more. The graveyard has candles lit, and something else is
   out there too.
 - At night, dealers offer shady packages for big money. Police will chase you while you carry one,
   and getting caught costs 25% of your cash and all your orders.
