@@ -20,6 +20,7 @@ canvas { position: fixed; inset: 0; display: block; touch-action: none; }
 .bar i { display: block; height: 100%; width: 100%; transform-origin: left; background: #5ee07a; }
 #timeBar i { background: #ffd23f; }
 #staminaBar i { background: #6cc6ff; }
+#nightTag { visibility: hidden; color: #ffd23f; }
 #job {
   position: absolute; left: 50%; top: max(10px, env(safe-area-inset-top)); transform: translateX(-50%);
   display: flex; align-items: center; gap: 12px; visibility: hidden;

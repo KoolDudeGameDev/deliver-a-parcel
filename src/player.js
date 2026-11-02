@@ -1,6 +1,6 @@
 // The player character and their state.
 import * as THREE from 'three';
-import { scene, box } from './engine.js';
+import { scene, box, canvasTexture } from './engine.js';
 
 function limb(w, h, d, color, x, pivotY, parent) {
   const pivot = new THREE.Group();
@@ -11,6 +11,7 @@ function limb(w, h, d, color, x, pivotY, parent) {
 }
 
 const body = new THREE.Group();
+body.rotation.order = 'YXZ'; // Turn first, so leaning into a corner rolls around the way you face.
 scene.add(body);
 const SKIN = 0xf6c945, SHIRT = 0x2f7de0, PANTS = 0x2b3a55;
 box(.95, 1, .5, SHIRT, 0, 1.5, 0, body);
@@ -32,7 +33,28 @@ const blob = new THREE.Mesh(new THREE.CircleGeometry(.65, 18),
 blob.rotation.x = -Math.PI / 2;
 scene.add(blob);
 
-const player = { pos: new THREE.Vector3(0, 0, 9), vx: 0, vz: 0, vy: 0, kx: 0, kz: 0, stun: 0, stamina: 100, phase: 0, moving: 0 };
+// A fake headlight: a soft cone on the ground, because a real light would cost too much on phones.
+const headlight = new THREE.Mesh(
+  new THREE.PlaneGeometry(9, 16).rotateX(-Math.PI / 2).translate(0, 0, 9),
+  new THREE.MeshBasicMaterial({
+    map: canvasTexture(64, 128, x => {
+      const g = x.createLinearGradient(0, 0, 0, 128);
+      g.addColorStop(0, 'rgba(255,240,190,.95)');
+      g.addColorStop(1, 'rgba(255,240,190,0)');
+      x.fillStyle = g;
+      x.beginPath();
+      x.moveTo(26, 0);
+      x.lineTo(38, 0);
+      x.lineTo(64, 128);
+      x.lineTo(0, 128);
+      x.fill();
+    }),
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0, fog: false,
+  }));
+headlight.visible = false;
+body.add(headlight);
+
+const player = { pos: new THREE.Vector3(0, 0, 9), vx: 0, vz: 0, vy: 0, kx: 0, kz: 0, lean: 0, heading: 0, stun: 0, stamina: 100, phase: 0, moving: 0 };
 const PLAYER_R = .55;
 
-export { limb, body, carryFood, carryParcel, blob, player, PLAYER_R, legL, legR, armL, armR };
+export { limb, body, headlight, carryFood, carryParcel, blob, player, PLAYER_R, legL, legR, armL, armR };

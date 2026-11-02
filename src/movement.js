@@ -4,12 +4,12 @@ import { view, controls, keys, stick } from './state.js';
 import { RUN, SPRINT, RIDE_SPRINT, PARCEL_SLOW, JUMP_V, GRAVITY } from './config.js';
 import { sun, resolve } from './engine.js';
 import { EDGE, HOUSES } from './world.js';
-import { sunDir } from './daynight.js';
-import { body, blob, player, PLAYER_R, legL, legR, armL, armR } from './player.js';
+import { sunDir, clock } from './daynight.js';
+import { body, headlight, carryFood, carryParcel, blob, player, PLAYER_R, legL, legR, armL, armR } from './player.js';
 import { save } from './save.js';
 import { orders } from './orders.js';
 import { inYard } from './dogs.js';
-import { myLot, nearSpot, mountVehicle, parkVehicle, rideNow, parked } from './home.js';
+import { myLot, nearSpot, mountVehicle, parkVehicle, rideNow, rideGroup, parked } from './home.js';
 
 function movePlayer(dt) {
   const p = player;
@@ -74,13 +74,8 @@ function movePlayer(dt) {
 
   if (ride ? pace > 1 : moving) body.rotation.y = Math.atan2(p.vx, p.vz);
   p.moving += ((moving ? 1 : 0) - p.moving) * Math.min(1, 12 * dt);
-  p.phase += speed * dt * 1.7;
-  const seated = ride && ride.seat > .5, swing = ride ? 0 : Math.sin(p.phase) * .9 * p.moving;
-  legL.rotation.x = seated ? -1.25 : swing;
-  legR.rotation.x = seated ? -1.25 : -swing;
-  const reach = orders.length || seated;
-  armL.rotation.x = reach ? -1.5 : -swing;
-  armR.rotation.x = reach ? -1.5 : swing;
+  p.phase += speed * dt * (ride?.pose === 'pedal' ? .9 : 1.7);
+  animate(ride, sprinting, pace, dt);
   body.position.copy(p.pos);
   if (ride) body.position.y += ride.seat;
   blob.position.set(p.pos.x, .17, p.pos.z);
@@ -89,6 +84,50 @@ function movePlayer(dt) {
   const texel = 120 / 2048, sx = Math.round(p.pos.x / texel) * texel, sz = Math.round(p.pos.z / texel) * texel;
   sun.target.position.set(sx, 0, sz);
   sun.position.set(sx, 0, sz).addScaledVector(sunDir, 120);
+}
+
+// Poses the character for whatever they're doing, and spins the wheels.
+function animate(ride, sprinting, pace, dt) {
+  const p = player, pose = ride?.pose, wave = Math.sin(p.phase), carrying = orders.length > 0;
+  if (pose === 'pedal') {
+    legL.rotation.x = -.75 + wave * .45 * p.moving;
+    legR.rotation.x = -.75 - wave * .45 * p.moving;
+  } else if (pose === 'motor') {
+    legL.rotation.x = legR.rotation.x = -1.15;
+  } else if (pose === 'board') {
+    // Front foot stays planted, back foot pushes off the ground while you're accelerating.
+    legL.rotation.x = .12;
+    legR.rotation.x = p.moving * (Math.sin(p.phase * .5) * .75 - .1);
+  } else {
+    legL.rotation.x = wave * .9 * p.moving;
+    legR.rotation.x = -wave * .9 * p.moving;
+  }
+
+  const bars = pose === 'pedal' ? -.85 : pose === 'motor' ? -.95 : null;
+  armL.rotation.x = bars ?? (carrying ? -1.5 : pose === 'board' ? 0 : -wave * .9 * p.moving);
+  armR.rotation.x = bars ?? (carrying ? -1.5 : pose === 'board' ? 0 : wave * .9 * p.moving);
+  // Arms out for balance on a board.
+  const balance = pose === 'board' && !carrying ? .55 : 0;
+  armL.rotation.z = -balance;
+  armR.rotation.z = balance;
+  // Both hands are on the bars, so what you're carrying rides behind you.
+  carryFood.position.z = bars ? -.75 : .85;
+  carryParcel.position.z = bars ? -.75 : .8;
+
+  // Lean into corners, and rock back on the moped or forward on the rest when sprinting.
+  const heading = Math.atan2(p.vx, p.vz), turn = Math.atan2(Math.sin(heading - p.heading), Math.cos(heading - p.heading)) / dt;
+  p.heading = heading;
+  p.lean += ((ride && pace > 2 ? clamp(-turn * .2, -.4, .4) : 0) - p.lean) * Math.min(1, 8 * dt);
+  body.rotation.z = p.lean;
+  body.rotation.x = ride && sprinting ? (pose === 'motor' ? -.12 : .1) : 0;
+
+  if (ride) for (const w of rideGroup.userData.wheels) w.rotation.x += pace * dt / w.userData.r;
+
+  headlight.visible = !!ride && clock.night > .02;
+  if (ride) {
+    headlight.position.y = .2 - ride.seat;
+    headlight.material.opacity = clock.night * .75;
+  }
 }
 
 export { movePlayer };

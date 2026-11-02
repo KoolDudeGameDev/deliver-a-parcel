@@ -1,6 +1,7 @@
 // Cash, stamina, the order card and hints.
 import { isTouch, $ } from './util.js';
 import { view } from './state.js';
+import { clock } from './daynight.js';
 import { hubRing } from './world.js';
 import { player } from './player.js';
 import { save } from './save.js';
@@ -11,6 +12,7 @@ function updateHud(now) {
   $('cash').textContent = `₱${save.cash}`;
   $('staminaBar').firstElementChild.style.transform = `scaleX(${player.stamina / 100})`;
   $('job').style.visibility = orders.length ? 'visible' : 'hidden';
+  $('nightTag').style.visibility = clock.night > .5 ? 'visible' : 'hidden';
   const spot = actionSpot();
   $('btnAction').classList.toggle('ready', !!spot);
   $('btnAction').textContent = spot || 'ACTION';

@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { clamp, toast } from './util.js';
 import { view } from './state.js';
-import { DOG_TYPES } from './config.js';
+import { DOG_TYPES, DOG_BREEDS } from './config.js';
 import { scene, box, resolve } from './engine.js';
 import { HOUSES } from './world.js';
 import { limb, player } from './player.js';
@@ -18,17 +18,21 @@ const alertTex = (() => {
 })();
 
 function buildDog(h) {
-  const t = DOG_TYPES[h.dog], g = new THREE.Group(), c = t.color;
-  box(.6, .6, 1.4, c, 0, .75, 0, g);
-  box(.55, .5, .55, c, 0, 1.15, .8, g);
-  box(.3, .22, .3, 0x333333, 0, 1.05, 1.15, g);
-  box(.14, .25, .14, 0x333333, -.2, 1.45, .75, g);
-  box(.14, .25, .14, 0x333333, .2, 1.45, .75, g);
-  const tail = box(.12, .12, .6, c, 0, 1, -.9, g);
-  tail.rotation.x = .7;
+  const b = DOG_BREEDS[h.dog], t = DOG_TYPES[b.size], g = new THREE.Group(), c = b.coat, dark = b.muzzle ?? 0x333333;
+  const len = b.len ?? 1, tall = b.legs ?? 1, bulk = b.fluffy ? 1.3 : 1, legH = .5 * tall, y = legH + .25, front = .7 * len;
+  box(.6 * bulk, .6 * bulk, 1.4 * len, c, 0, y, 0, g);
+  if (b.mark) box(.62 * bulk, .14, .95 * len, b.mark, 0, y + .26 * bulk, -.08, g);
+  box(.55 * bulk, .5 * bulk, .55, c, 0, y + .4, front + .1, g);
+  box(.3, .22, .3, dark, 0, y + .3, front + .45, g);
+  for (const s of [-1, 1]) {
+    if (b.ears === 'flop') box(.14, .36, .2, b.mark ?? dark, s * (.3 * bulk + .05), y + .42, front + .1, g);
+    else box(.14, .28, .14, c, s * .2, y + .72, front + .05, g);
+  }
+  const tail = box(.12, .12, .6, c, 0, y + .25, -.7 * len - .2, g);
+  tail.rotation.x = b.tail === 'up' ? 1.1 : b.tail === 'curl' ? 1.6 : .3;
   const legs = [[-.2, .5], [.2, .5], [-.2, -.5], [.2, -.5]].map(([x, z]) => {
-    const p = limb(.18, .5, .18, c, x, .5, g);
-    p.position.z = z;
+    const p = limb(.18, legH, .18, c, x, legH, g);
+    p.position.z = z * len;
     return p;
   });
   g.scale.setScalar(t.scale);
@@ -39,7 +43,7 @@ function buildDog(h) {
   mark.visible = false;
   g.add(mark);
   const pos = new THREE.Vector3(h.x, 0, h.z).addScaledVector(new THREE.Vector3(h.dx, 0, h.dz), 5);
-  return { ...t, house: h, group: g, legs, tail, mark, pos, target: pos.clone(), wait: 0, cd: 0, alert: false, phase: 0, r: .55 * t.scale };
+  return { ...t, name: b.name, house: h, group: g, legs, tail, mark, pos, target: pos.clone(), wait: 0, cd: 0, alert: false, phase: 0, r: .55 * t.scale };
 }
 const dogs = HOUSES.filter(h => h.dog).map(buildDog);
 const inYard = (p, y) => p.x > y.x0 && p.x < y.x1 && p.z > y.z0 && p.z < y.z1;

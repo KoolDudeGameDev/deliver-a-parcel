@@ -7,7 +7,11 @@ function wheel(r, w, z, g, x = 0) {
   const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, w, 14).rotateZ(Math.PI / 2), new THREE.MeshLambertMaterial({ color: 0x222222 }));
   m.position.set(x, r, z);
   m.castShadow = !isTouch;
+  m.userData.r = r;
+  // A spoke, or a spinning black cylinder would look exactly like a still one.
+  box(w + .03, r * 1.7, .07, 0x9aa0a8, 0, 0, 0, m);
   g.add(m);
+  (g.userData.wheels ??= []).push(m);
 }
 
 function sidecar(g) {
@@ -20,10 +24,11 @@ function sidecar(g) {
 }
 
 // Bought in this order. A new vehicle is one more row here. Each part is levels of the same
-// upgrade, one price per level, and what every level adds to speed, accel or carry.
+// upgrade, one price per level, and what every level adds to speed, accel or carry. seat lifts the
+// rider's feet off the ground so their hips land on the saddle, and pose picks their animation.
 const VEHICLES = {
   skateboard: {
-    name: 'Skateboard', price: 150, speed: 9, accel: 6,
+    name: 'Skateboard', price: 150, speed: 9, accel: 6, pose: 'board',
     seat: lv => .3 + lv.wheels * .1,
     parts: {
       wheels: { name: 'Bigger wheels', prices: [60, 160, 360], speed: 1 },
@@ -40,8 +45,8 @@ const VEHICLES = {
     },
   },
   bicycle: {
-    name: 'Bicycle', price: 500, speed: 12, accel: 5,
-    seat: lv => .8 + lv.tires * .16,
+    name: 'Bicycle', price: 500, speed: 12, accel: 5, pose: 'pedal',
+    seat: lv => .1 + lv.tires * .16,
     parts: {
       tires: { name: 'Bigger tires', prices: [150, 400, 800], speed: 1 },
       basket: { name: 'Front basket', prices: [300], carry: 1 },
@@ -59,8 +64,8 @@ const VEHICLES = {
     },
   },
   moped: {
-    name: 'Moped', price: 1500, speed: 17, accel: 3.5,
-    seat: lv => .75 + lv.tires * .12,
+    name: 'Moped', price: 1500, speed: 17, accel: 3.5, pose: 'motor',
+    seat: lv => .05 + lv.tires * .12,
     parts: {
       engine: { name: 'Bigger engine', prices: [500, 1100, 2200], speed: 1.5 },
       tires: { name: 'Wider tires', prices: [400, 900], accel: 1 },

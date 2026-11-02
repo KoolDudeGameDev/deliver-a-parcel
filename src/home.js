@@ -188,4 +188,4 @@ function parkVehicle() {
   toast('Parked at the gate. On foot from here!');
 }
 
-export { myLot, nearSpot, showHome, goHome, claimLot, claimBox, dialogOpen, buyHome, nextVehicle, buyVehicle, buyPart, affordable, actionSpot, action, setVehicle, mountVehicle, parkVehicle, rideNow, parked };
+export { myLot, nearSpot, showHome, goHome, claimLot, claimBox, dialogOpen, buyHome, nextVehicle, buyVehicle, buyPart, affordable, actionSpot, action, setVehicle, mountVehicle, parkVehicle, rideNow, rideGroup, parked };

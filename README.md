@@ -10,10 +10,13 @@ Watch out for the dogs.
 
 - Take orders at the hub, marked by the green dot on the minimap, then follow the yellow dot.
 - Food pays better when it's fast. Parcels are heavy and slow you down.
-- Yards have dogs in five sizes. Tiny ones are quick, and giant ones hit hard. You always walk
+- Yards have dogs, from a quick little Chihuahua to a Great Dane that hits hard. You always walk
   through a gate, so the chase stays on foot.
 - Some parcels go to the cemetery. Park at the gate and find your way between the tombs to the
   right grave.
+- Citizens walk the sidewalks. Hit one at speed and it costs you money and damages your orders.
+- After dark, deliveries pay 30% more. The graveyard has candles lit, and something else is
+  out there too.
 - Spend your cash at home, the blue dot. Upgrade your house for better pay, and upgrade your ride
   with bigger wheels, baskets and sidecars so you can carry more orders.
 
@@ -52,7 +55,7 @@ css/style.css       all styling
 vendor/             unmodified three.js r170
 src/
   main.js           starts the game and runs the frame loop
-  config.js         tuning numbers, including dog sizes
+  config.js         tuning numbers, dog sizes and breeds
   data/
     vehicles.js     vehicles, their upgrade parts and models
     homes.js        the house ladder and models
@@ -61,7 +64,8 @@ src/
   daynight.js       the day-to-night cycle
   player.js         the player character
   dogs.js           dog behaviour
-  citizens.js       people walking the sidewalks
+  citizens.js       people walking the sidewalks, some with dogs
+  ghost.js          the White Lady
   orders.js         taking and delivering orders
   home.js           your home, upgrades, and riding
   save.js           saved progress
@@ -74,7 +78,7 @@ src/
   util.js           small helpers
 ```
 
-Most new content is one new row in a table. Add a dog size in `src/config.js`, then give it to a
+Most new content is one new row in a table. Add a dog breed in `src/config.js`, then give it to a
 house in `src/world.js`. Add a vehicle or part in `src/data/vehicles.js`, or a house level in
 `src/data/homes.js`.
 
