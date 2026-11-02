@@ -15,14 +15,14 @@ Imports only point up this list. There are no circular imports, so keep it that 
 
 | File | Owns |
 | --- | --- |
-| `util.js`, `state.js`, `config.js` | Helpers, values several files write, tuning numbers and `DOG_TYPES` |
+| `util.js`, `state.js`, `config.js` | Helpers, values several files write, tuning numbers, `DOG_TYPES` and `DOG_BREEDS` |
 | `engine.js` | Renderer, scene, sky, `box`, `block`, `instanced`, colliders, `sign` |
 | `data/vehicles.js`, `data/homes.js` | `VEHICLES` with `parts`, `HOMES` |
 | `world.js` | `ROADS`, `HOUSES`, `LOTS` (the seven home sites), trees, baking |
 | `daynight.js`, `player.js` | Day cycle, the player and their model |
 | `save.js` | `save`, `loadSave`, `rideStats` |
 | `orders.js`, `dogs.js` | Orders, then dogs, which damage carried orders |
-| `citizens.js` | Sidewalk walkers, one shared `InstancedMesh`, scenery only |
+| `citizens.js`, `ghost.js` | Sidewalk walkers and their leashed dogs (`InstancedMesh`es), the White Lady |
 | `home.js` | Upgrade panel, `action`, mounting and parking vehicles |
 | `input.js`, `movement.js`, `camera.js` | Controls and per-frame movement |
 | `hud.js`, `minimap.js` | On-screen display |
