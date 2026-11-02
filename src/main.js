@@ -1,7 +1,7 @@
 // Starts the game and runs the frame loop.
 import { view, weather } from './state.js';
 import { DOG_TYPES } from './config.js';
-import { renderer, scene, camera, blocks, walls, colliders } from './engine.js';
+import { renderer, scene, camera, blocks, walls, colliders, hideDistant } from './engine.js';
 import { VEHICLES } from './data/vehicles.js';
 import { HOMES } from './data/homes.js';
 import { ROADS, HOUSES, LOTS } from './world.js';
@@ -10,7 +10,7 @@ import { player } from './player.js';
 import { save, rideStats } from './save.js';
 import { orders, capacity, currentOffers, renewOffers, acceptOffer, offerProblem, updateOrder } from './orders.js';
 import { dogs, updateDog } from './dogs.js';
-import { myLot, showHome, showStyle, goHome, claimLot, claimBox, buyHome, buyVehicle, buyPart, buyPaint, buyDecor, setVehicle, parked } from './home.js';
+import { onClaim, myLot, showHome, showStyle, goHome, claimLot, claimBox, buyHome, buyVehicle, buyPart, buyPaint, buyDecor, setVehicle, parked } from './home.js';
 import { actionSpot, action } from './actions.js';
 import { movePlayer } from './movement.js';
 import { updateCamera } from './camera.js';
@@ -19,6 +19,7 @@ import { updateMini } from './minimap.js';
 import { citizens, updateCitizens } from './citizens.js';
 import { lady, updateGhost } from './ghost.js';
 import { updateHub } from './hub.js';
+import { net, connect, updateNet } from './net.js';
 import { updateEvents, startEvent } from './events.js';
 import { rides, updateTraffic } from './traffic.js';
 import { currentGoals, countGoal } from './goals.js';
@@ -36,6 +37,8 @@ if (myLot()) {
 } else {
   claimBox.showModal();
 }
+onClaim(connect);
+connect();
 
 let last = performance.now();
 renderer.setAnimationLoop(now => {
@@ -52,9 +55,11 @@ renderer.setAnimationLoop(now => {
   updatePolice(dt);
   updateOrder(dt);
   updateCamera(dt);
+  hideDistant(player.pos.x, player.pos.z);
   updateDay(dt);
   updateHud(now);
   updateMini(now);
+  updateNet(dt, now);
   renderer.render(scene, camera);
 });
 
@@ -63,7 +68,7 @@ window.game = {
   player, dogs, citizens, sounds, lady, clock, dealer, buyer, nearDealer, takePackage, cars, arrest, colliders, ROADS, HOUSES, currentOffers, renewOffers, acceptOffer, offerProblem, renderer, walls, blocks,
   get dayTime() { return clock.time; }, set dayTime(v) { clock.time = v; },
   LOTS, HOMES, VEHICLES, DOG_TYPES, orders, save, action, actionSpot, capacity, rideStats,
-  startEvent, weather, rides, currentGoals, countGoal, buyVehicle, buyPart, buyHome, buyPaint, buyDecor, setVehicle, claimLot, showHome, get order() { return orders[0]; }, get cash() { return save.cash; }, get delivered() { return save.delivered; },
+  net, startEvent, weather, rides, currentGoals, countGoal, buyVehicle, buyPart, buyHome, buyPaint, buyDecor, setVehicle, claimLot, showHome, get order() { return orders[0]; }, get cash() { return save.cash; }, get delivered() { return save.delivered; },
   get parked() { return parked; },
   get yaw() { return view.yaw; }, set yaw(v) { view.yaw = v; },
 };

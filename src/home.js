@@ -29,6 +29,9 @@ function goHome() {
   view.yaw = body.rotation.y + Math.PI;
 }
 
+let afterClaim = () => {};
+const onClaim = fn => { afterClaim = fn; };
+
 function claimLot(lot, name) {
   save.slot = LOTS.indexOf(lot);
   save.name = name;
@@ -36,6 +39,7 @@ function claimLot(lot, name) {
   showHome();
   goHome();
   toast(`Welcome home, ${name}!`);
+  afterClaim();
 }
 
 const claimBox = $('claimBox');
@@ -159,4 +163,4 @@ function parkVehicle() {
   toast('Parked at the gate. On foot from here!');
 }
 
-export { myLot, nearSpot, showHome, showStyle, goHome, claimLot, claimBox, buyHome, nextVehicle, buyVehicle, buyPart, buyPaint, buyDecor, affordable, setVehicle, mountVehicle, parkVehicle, rideNow, rideGroup, parked };
+export { onClaim, myLot, nearSpot, showHome, showStyle, goHome, claimLot, claimBox, buyHome, nextVehicle, buyVehicle, buyPart, buyPaint, buyDecor, affordable, setVehicle, mountVehicle, parkVehicle, rideNow, rideGroup, parked };

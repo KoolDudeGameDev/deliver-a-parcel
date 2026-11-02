@@ -31,17 +31,18 @@ canvas { position: fixed; inset: 0; display: block; touch-action: none; }
   text-shadow: 0 2px 3px rgba(0,0,0,.55);
 }
 #top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-#stats { min-width: 154px; padding: 8px 12px 10px; border-radius: 14px; background: var(--panel); }
+#stats { min-width: 154px; max-width: 200px; padding: 8px 12px 10px; border-radius: 14px; background: var(--panel); }
 #cash { font-size: 26px; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .label { font-size: 12px; margin: 5px 0 2px; }
 #ratingTag, #streakTag { color: var(--gold); }
 #eventTag { color: #8fd6ff; }
-#ratingTag:empty, #streakTag:empty, #eventTag:empty { display: none; }
+#onlineTag { color: #b7f0cf; }
+#ratingTag:empty, #streakTag:empty, #eventTag:empty, #onlineTag:empty { display: none; }
 .bar { width: 130px; height: 9px; background: rgba(0,0,0,.45); border-radius: 5px; overflow: hidden; }
 .bar i { display: block; height: 100%; width: 100%; transform-origin: left; background: #5ee07a; }
 #timeBar i { background: #ffd23f; }
 #staminaBar i { background: #6cc6ff; }
-#nightTag { visibility: hidden; color: #ffd23f; }
+#nightTag { display: none; color: #ffd23f; }
 #job {
   position: absolute; left: 50%; top: max(10px, env(safe-area-inset-top)); transform: translateX(-50%);
   display: flex; align-items: center; gap: 12px; visibility: hidden;

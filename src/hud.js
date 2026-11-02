@@ -11,6 +11,7 @@ import { affordable } from './home.js';
 import { actionSpot } from './actions.js';
 import { streakBonus } from './goals.js';
 import { eventText } from './events.js';
+import { net } from './net.js';
 
 $('nightTag').textContent = `Night pay +${Math.round((NIGHT_PAY - 1) * 100)}%`;
 
@@ -18,10 +19,11 @@ function updateHud(now) {
   $('cash').textContent = `₱${save.cash}`;
   $('staminaBar').firstElementChild.style.transform = `scaleX(${player.stamina / 100})`;
   $('job').style.visibility = orders.length ? 'visible' : 'hidden';
-  $('nightTag').style.visibility = clock.night > .5 ? 'visible' : 'hidden';
+  $('nightTag').style.display = clock.night > .5 ? 'block' : 'none';
   $('ratingTag').textContent = save.ratingCount ? `★ ${(save.ratingSum / save.ratingCount).toFixed(1)} rating` : '';
   $('streakTag').textContent = save.streak >= 2 ? `Streak ${save.streak}, +${Math.round(streakBonus() * 100)}% pay` : '';
   $('eventTag').textContent = eventText();
+  $('onlineTag').textContent = net.online ? `${net.count} of 7 online` : '';
   const spot = actionSpot();
   $('btnAction').classList.toggle('ready', !!spot);
   $('btnAction').textContent = spot || 'ACTION';

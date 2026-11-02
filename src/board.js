@@ -4,6 +4,7 @@ import { keys } from './state.js';
 import { sendBox } from './hub.js';
 import { orders, capacity, currentOffers, acceptOffer, offerProblem, starText, renewOffers, isRegular } from './orders.js';
 import { currentGoals } from './goals.js';
+import { net } from './net.js';
 
 const boardBox = $('boardBox');
 
@@ -29,6 +30,14 @@ function renderBoard() {
     const line = document.createElement('div');
     line.className = g.done ? 'goal done' : 'goal';
     line.textContent = g.done ? `${g.label}: done` : `${g.label}: ${g.progress} of ${g.count}, ₱${g.reward}`;
+    return line;
+  }));
+  // The leaderboard only exists when there's a server to keep it.
+  $('topRiders').hidden = !net.online;
+  $('topList').replaceChildren(...net.board.map((e, i) => {
+    const line = document.createElement('div');
+    line.className = 'goal';
+    line.textContent = `${i + 1}. ${e.name}: ${e.delivered} deliveries`;
     return line;
   }));
 }

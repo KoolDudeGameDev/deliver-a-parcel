@@ -1,7 +1,7 @@
 // The map: roads, houses, home sites, trees and decoration, then baked into a few draw calls.
 import * as THREE from 'three';
 import { isTouch } from './util.js';
-import { scene, colliders, solids, blocks, walls, roofs, bulbs, block, instanced, canvasTexture, speckle, addCollider, sign } from './engine.js';
+import { scene, colliders, solids, blocks, walls, roofs, bulbs, block, instanced, canvasTexture, speckle, addCollider, sign, distant } from './engine.js';
 import { HOMES } from './data/homes.js';
 import { DOG_BREEDS } from './config.js';
 
@@ -293,6 +293,7 @@ for (let i = 0; i < 20000 && LOTS.length < 7; i++) {
   l.decor.position.copy(l.group.position);
   l.decor.rotation.y = l.group.rotation.y;
   scene.add(l.decor);
+  distant.push({ object: l.group, reach: 150 }, { object: l.decor, reach: 110 });
   const sx = x + dx * 9 + dz * 6, sz = z + dz * 9 - dx * 6;
   block(.25, 2.4, .25, 0x7a5a3c, sx, 1.2, sz);
   l.signMaterial = sign([l.name.toUpperCase(), 'OPEN'], '#fff', '#222', 3.2, 1.6, sx, 3.2, sz, Math.atan2(dx, dz));

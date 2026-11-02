@@ -13,7 +13,7 @@ import { inYard } from './dogs.js';
 import { onLoop } from './citizens.js';
 import { play, setSiren } from './audio.js';
 
-const CATCH_R = 2.6, CAR_R = 1.5, SHOW_R = 140, GRACE = 6, LANE = 2.2;
+const CATCH_R = 2.6, CAR_R = 1.5, SHOW_R = 110, GRACE = 6, LANE = 2.2;
 
 function buildCar() {
   const g = new THREE.Group();

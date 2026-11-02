@@ -83,7 +83,7 @@ function bite(d) {
 function updateDog(d, dt) {
   const y = d.house.yard, chasing = inYard(player.pos, y);
   // Too far off to make out, so not worth a dozen draw calls each.
-  d.group.visible = Math.hypot(player.pos.x - d.pos.x, player.pos.z - d.pos.z) < 130;
+  d.group.visible = Math.hypot(player.pos.x - d.pos.x, player.pos.z - d.pos.z) < 90;
   if (chasing && !d.alert) {
     toast(`${d.call} Run!`);
     play(d.call === 'WOOF!' ? 'bark' : 'honk');

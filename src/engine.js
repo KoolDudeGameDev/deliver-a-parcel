@@ -136,8 +136,21 @@ function sign(lines, bg, fg, w, h, x, y, z, rotY) {
     m.position.set(x, y, z);
     m.rotation.y = rotY + turn;
     scene.add(m);
+    distant.push({ object: m, reach: SIGN_REACH });
   }
   return material;
 }
 
-export { renderer, scene, camera, hemi, sun, skyUniforms, skyDome, colliders, solids, blocks, walls, roofs, bulbs, block, box, instanced, canvasTexture, speckle, addCollider, resolve, textTexture, sign };
+// Signs and homes too far off to make out aren't drawn. A few are checked each frame, which is
+// plenty, because nothing on this list moves.
+const SIGN_REACH = 75, CHECKS_PER_FRAME = 8;
+const distant = [];
+let nextCheck = 0;
+function hideDistant(x, z) {
+  for (let i = 0; i < CHECKS_PER_FRAME && distant.length; i++) {
+    const { object, reach } = distant[nextCheck = (nextCheck + 1) % distant.length];
+    object.visible = Math.hypot(object.position.x - x, object.position.z - z) < reach;
+  }
+}
+
+export { renderer, scene, camera, hemi, sun, skyUniforms, skyDome, colliders, solids, blocks, walls, roofs, bulbs, block, box, instanced, canvasTexture, speckle, addCollider, resolve, textTexture, sign, distant, hideDistant };
