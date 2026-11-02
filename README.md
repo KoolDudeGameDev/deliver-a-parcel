@@ -1,5 +1,7 @@
 # Deliver a Parcel
 
+<img src="assets/game-icon.png" width="160" height="160" alt="Deliver a Parcel game icon: a blocky rider holding up a parcel, chased by a dog">
+
 A blocky 3D delivery game that runs in your browser, on a computer or a phone. Start with a
 cardboard box, deliver food and parcels against the clock, and build it up into a mansion.
 Watch out for the dogs.
@@ -8,6 +10,7 @@ Watch out for the dogs.
 
 ## How it plays
 
+- Each time you open the game, pick your name, skin, shirt, pants and cap, then press Play.
 - Choose an order from the board at the hub, the green dot on the minimap, then follow the yellow
   dot. Each one shows its difficulty, from 1 to 5 stars. Good ratings unlock harder orders.
 - Food pays better when it's fast. Parcels are heavy and slow you down.
@@ -28,8 +31,7 @@ Spend your cash around town:
 
 - **Vehicle dealer** (orange dot): roller blades, skateboard, bicycle, moped, motorcycle, tricycle.
 - **Mechanic** (teal dot): bigger wheels, baskets, sidecars and paint for your ride.
-- **Home** (blue dot): house upgrades, paint, garden items and clothes. All of it is on sale from
-  the start.
+- **Home** (blue dot): house upgrades, paint and garden items. All of it is on sale from the start.
 
 | Action | Keyboard and mouse | Phone |
 | --- | --- | --- |
@@ -45,8 +47,9 @@ Your progress saves in your browser, so it doesn't follow you to another device.
 ## Multiplayer
 
 Up to seven players can share one world. You see each other riding around, each home shows its
-owner's upgrades and paint, and a leaderboard keeps the top riders. Orders and dogs stay separate
-for each player.
+owner's upgrades and paint, and the order board lists everyone in the world by what they're worth,
+with their star rating. Nothing is stored on the server. Orders and dogs stay separate for each
+player.
 
 The public link is single-player until a server is running. To start one, install the
 [Fly.io CLI](https://fly.io/docs/flyctl/install/), then run this from `server/`:
@@ -108,6 +111,7 @@ src/
   events.js         rain, brownouts, fiesta and Undas
   traffic.js        jeepneys and tricycles
   net.js            multiplayer
+  intro.js          the intro: your name and look, then Play
   hub.js            the conveyor in the orders building
   contraband.js     night jobs
   police.js         police cars and arrests
@@ -145,9 +149,9 @@ Keep it simple: no build step, and no new dependency for something a few lines c
 
 Good places to start:
 
-- Sound effects, because the game has none yet
+- More sound effects
 - More vehicles and parts
-- Cats, geese and other things that chase you
+- More things that chase you
 - Balancing prices, timers and pay
 - Sharing dogs and orders between players
 

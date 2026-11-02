@@ -69,10 +69,6 @@ function homeList() {
     heading('Garden'),
     ...DECOR_KEYS.map(k => row(DECOR[k].name, style.decor.includes(k) ? 'In your yard' : 'For your yard',
       style.decor.includes(k) ? 'Owned' : `₱${DECOR[k].price}`, !style.decor.includes(k) && save.cash >= DECOR[k].price, () => buyDecor(k))),
-    heading(`Shirt, ₱${PAINT_PRICES.shirt}`),
-    swatches('shirt', style.shirt, PAINT_PRICES.shirt),
-    heading(`Cap, ₱${PAINT_PRICES.hat}`),
-    swatches('hat', style.hat, PAINT_PRICES.hat),
     heading('Your rides'),
     ...ownedRides(),
   ];

@@ -7,16 +7,16 @@ import { scene, box, textTexture } from './engine.js';
 import { VEHICLES } from './data/vehicles.js';
 import { HOMES } from './data/homes.js';
 import { LOTS, showLotHome } from './world.js';
-import { body, player } from './player.js';
-import { save, saveGame } from './save.js';
+import { body, player, SKIN, SHIRT, HAT, PANTS } from './player.js';
+import { save, saveGame, worth, rating } from './save.js';
 import { myLot, showHome, goHome } from './home.js';
 
 const SEND_MS = 100, RETRY_MS = 5000, SHOW_R = 170;
 const url = new URLSearchParams(location.search).get('server') || MULTIPLAYER_URL;
 
 const others = new Map();
-const net = { online: false, count: 0, board: [], others };
-let socket = null, myId = null, lastSent = 0, lastDelivered = -1, styleSent = '';
+const net = { online: false, count: 0, others };
+let socket = null, myId = null, lastSent = 0, statsSent = '', styleSent = '';
 
 function nameTag(name) {
   const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: textTexture([name], '#141d2b', '#fff'), transparent: true, opacity: .85, depthTest: false }));
@@ -27,18 +27,17 @@ function nameTag(name) {
 
 function buildRider(p) {
   const g = new THREE.Group();
-  const shirt = box(.95, 1, .5, p.shirt ?? 0x2f7de0, 0, 1.5, 0, g), hat = box(.78, .24, .78, p.hat ?? 0xe0443a, 0, 2.8, 0, g);
-  box(.72, .72, .72, 0xf6c945, 0, 2.38, 0, g);
+  const shirt = box(.95, 1, .5, SHIRT, 0, 1.5, 0, g), hat = box(.78, .24, .78, HAT, 0, 2.8, 0, g), head = box(.72, .72, .72, SKIN, 0, 2.38, 0, g);
   const legs = [-.24, .24].map(x => {
     const pivot = new THREE.Group();
     pivot.position.set(x, 1, 0);
-    box(.42, 1, .45, 0x2b3a55, 0, -.5, 0, pivot);
+    box(.42, 1, .45, PANTS, 0, -.5, 0, pivot);
     g.add(pivot);
     return pivot;
   });
   g.add(nameTag(p.name));
   scene.add(g);
-  return { group: g, shirt, hat, legs, x: p.x, y: p.y, z: p.z, ry: p.ry, phase: 0, rideKey: null, rideGroup: null, data: p, lot: null };
+  return { group: g, shirt, hat, head, legs, x: p.x, y: p.y, z: p.z, ry: p.ry, phase: 0, rideKey: null, rideGroup: null, data: p, lot: null };
 }
 
 function showRide(o, key) {
@@ -86,8 +85,10 @@ function onWorld(list) {
       toast(`${p.name} joined`);
     }
     o.data = p;
-    o.shirt.material.color.setHex(p.shirt ?? 0x2f7de0);
-    o.hat.material.color.setHex(p.hat ?? 0xe0443a);
+    o.shirt.material.color.setHex(p.shirt ?? SHIRT);
+    o.hat.material.color.setHex(p.hat ?? HAT);
+    o.head.material.color.setHex(p.skin ?? SKIN);
+    for (const leg of o.legs) leg.children[0].material.color.setHex(p.pants ?? PANTS);
     showRide(o, p.ride);
     showOtherHome(o);
   }
@@ -107,7 +108,6 @@ function onMessage(event) {
   if (m.t === 'welcome') {
     myId = m.id;
     net.online = true;
-    net.board = m.board;
     // Someone else already has our lot, so we've been moved to a free one.
     if (m.slot !== save.slot) {
       save.slot = m.slot;
@@ -117,7 +117,6 @@ function onMessage(event) {
     }
   } else if (m.t === 'w') onWorld(m.players);
   else if (m.t === 'left') drop(m.id);
-  else if (m.t === 'board') net.board = m.board;
   else if (m.t === 'full') toast('This world is full, so you are playing solo');
 }
 
@@ -125,8 +124,8 @@ function connect() {
   if (!url || !myLot()) return;
   socket = new WebSocket(url);
   socket.onopen = () => {
-    socket.send(JSON.stringify({ t: 'join', name: save.name, slot: save.slot, level: save.homeLevel, paint: save.style.house, shirt: save.style.shirt, hat: save.style.hat }));
-    styleSent = '';
+    socket.send(JSON.stringify({ t: 'join', name: save.name, slot: save.slot }));
+    styleSent = statsSent = '';
   };
   socket.onmessage = onMessage;
   socket.onclose = () => {
@@ -141,15 +140,18 @@ function sendState(now) {
   lastSent = now;
   const { x, y, z } = player.pos;
   socket.send(JSON.stringify({ t: 's', x, y, z, ry: body.rotation.y, ride: save.equipped, speed: Math.hypot(player.vx, player.vz) }));
-  const style = JSON.stringify([save.homeLevel, save.style.house, save.style.shirt, save.style.hat]);
-  if (style !== styleSent) {
-    styleSent = style;
-    socket.send(JSON.stringify({ t: 'style', level: save.homeLevel, paint: save.style.house, shirt: save.style.shirt, hat: save.style.hat }));
-  }
-  if (save.delivered !== lastDelivered) {
-    lastDelivered = save.delivered;
-    socket.send(JSON.stringify({ t: 'score', delivered: save.delivered }));
-  }
+  const { house, shirt, hat, skin, pants } = save.style;
+  const style = JSON.stringify({ t: 'style', level: save.homeLevel, paint: house, shirt, hat, skin, pants });
+  if (style !== styleSent) socket.send(styleSent = style);
+  const stats = JSON.stringify({ t: 'stats', worth: worth(), rating: rating() });
+  if (stats !== statsSent) socket.send(statsSent = stats);
+}
+
+// Everyone in this world, richest first, for the order board.
+function worldBoard() {
+  const list = [...others.values()].map(o => ({ name: o.data.name, worth: o.data.worth, rating: o.data.rating, me: false }));
+  list.push({ name: save.name, worth: worth(), rating: rating(), me: true });
+  return list.sort((a, b) => b.worth - a.worth);
 }
 
 // Riders glide between updates, so ten messages a second still looks smooth.
@@ -172,4 +174,4 @@ function updateNet(dt, now) {
   }
 }
 
-export { net, connect, updateNet };
+export { net, connect, updateNet, worldBoard };

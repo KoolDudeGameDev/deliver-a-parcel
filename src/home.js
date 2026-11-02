@@ -1,13 +1,13 @@
 // Your home, the upgrade panel, the action button, and getting on and off your ride.
 import * as THREE from 'three';
-import { $, toast } from './util.js';
+import { toast } from './util.js';
 import { view } from './state.js';
 import { scene, textTexture } from './engine.js';
 import { VEHICLES, VEHICLE_KEYS } from './data/vehicles.js';
 import { HOMES } from './data/homes.js';
 import { PAINT_PRICES, DECOR } from './data/cosmetics.js';
 import { LOTS, showLotHome, homeRing } from './world.js';
-import { body, player, shirtMaterial, hatMaterials, SHIRT, HAT } from './player.js';
+import { body, player, shirtMaterial, hatMaterials, skinMaterials, pantsMaterials, SKIN, SHIRT, HAT, PANTS } from './player.js';
 import { save, saveGame, rideStats } from './save.js';
 import { syncCarry } from './orders.js';
 
@@ -29,9 +29,6 @@ function goHome() {
   view.yaw = body.rotation.y + Math.PI;
 }
 
-let afterClaim = () => {};
-const onClaim = fn => { afterClaim = fn; };
-
 function claimLot(lot, name) {
   save.slot = LOTS.indexOf(lot);
   save.name = name;
@@ -39,13 +36,7 @@ function claimLot(lot, name) {
   showHome();
   goHome();
   toast(`Welcome home, ${name}!`);
-  afterClaim();
 }
-
-const claimBox = $('claimBox');
-claimBox.addEventListener('close', () => {
-  claimLot(LOTS[Math.floor(Math.random() * LOTS.length)], $('nameInput').value.trim() || 'Rider');
-});
 
 function buyHome() {
   const next = HOMES[save.homeLevel + 1];
@@ -125,6 +116,8 @@ function showStyle() {
   const l = myLot(), { style } = save;
   shirtMaterial.color.setHex(style.shirt ?? SHIRT);
   for (const m of hatMaterials) m.color.setHex(style.hat ?? HAT);
+  for (const m of skinMaterials) m.color.setHex(style.skin ?? SKIN);
+  for (const m of pantsMaterials) m.color.setHex(style.pants ?? PANTS);
   if (!l) return;
   showLotHome(l, save.homeLevel, style.house);
   l.decor.clear();
@@ -163,4 +156,4 @@ function parkVehicle() {
   toast('Parked at the gate. On foot from here!');
 }
 
-export { onClaim, myLot, nearSpot, showHome, showStyle, goHome, claimLot, claimBox, buyHome, nextVehicle, buyVehicle, buyPart, buyPaint, buyDecor, affordable, setVehicle, mountVehicle, parkVehicle, rideNow, rideGroup, parked };
+export { myLot, nearSpot, showHome, showStyle, goHome, claimLot, buyHome, nextVehicle, buyVehicle, buyPart, buyPaint, buyDecor, affordable, setVehicle, mountVehicle, parkVehicle, rideNow, rideGroup, parked };

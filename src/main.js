@@ -10,7 +10,7 @@ import { player } from './player.js';
 import { save, rideStats } from './save.js';
 import { orders, capacity, currentOffers, renewOffers, acceptOffer, offerProblem, updateOrder } from './orders.js';
 import { dogs, updateDog } from './dogs.js';
-import { onClaim, myLot, showHome, showStyle, goHome, claimLot, claimBox, buyHome, buyVehicle, buyPart, buyPaint, buyDecor, setVehicle, parked } from './home.js';
+import { claimLot, showHome, buyHome, buyVehicle, buyPart, buyPaint, buyDecor, setVehicle, parked } from './home.js';
 import { actionSpot, action } from './actions.js';
 import { movePlayer } from './movement.js';
 import { updateCamera } from './camera.js';
@@ -26,19 +26,12 @@ import { currentGoals, countGoal } from './goals.js';
 import { dealer, buyer, nearDealer, takePackage, updateContraband } from './contraband.js';
 import { cars, updatePolice, arrest } from './police.js';
 import { sounds } from './audio.js';
+import { openIntro } from './intro.js';
 import './input.js';
 
-// Back home if there's a home to come back to. First timers get a name prompt, then a box.
+// Everyone starts at the intro, standing at home. Play joins the world.
 setVehicle(save.equipped);
-showStyle();
-if (myLot()) {
-  showHome();
-  goHome();
-} else {
-  claimBox.showModal();
-}
-onClaim(connect);
-connect();
+openIntro(connect);
 
 let last = performance.now();
 renderer.setAnimationLoop(now => {
