@@ -86,8 +86,8 @@ Friends and strangers are both welcome.
 3. Play it at desktop size and at phone size before you open the pull request.
 4. Check the browser console has no errors, and say in the pull request what you tested.
 
-Each pull request gets its own Vercel preview link, so reviewers can play your change. Once it's
-merged, it goes live on its own.
+Once a pull request is merged, it goes live on its own. Vercel also builds a preview of each pull
+request, but previews are private to the project's Vercel team, so test on your own machine.
 
 Keep it simple: no build step, and no new dependency for something a few lines can do.
 
