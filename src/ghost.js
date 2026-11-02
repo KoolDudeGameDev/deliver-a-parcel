@@ -8,8 +8,9 @@ import { scene } from './engine.js';
 import { HOUSES } from './world.js';
 import { clock } from './daynight.js';
 import { player } from './player.js';
-import { orders } from './orders.js';
+import { orders, hurtOrders } from './orders.js';
 import { inYard } from './dogs.js';
+import { play } from './audio.js';
 
 const cemetery = HOUSES.find(h => h.name === 'Cemetery');
 const START = new THREE.Vector3(74.5, 0, 83);
@@ -38,7 +39,8 @@ function scare() {
   player.vy = Math.max(player.vy, 5);
   player.stun = .5;
   view.shake = .5;
-  for (const o of orders) o.fresh = Math.max(0, o.fresh - GHOST_DAMAGE);
+  hurtOrders(GHOST_DAMAGE);
+  play('ghost');
   toast(orders.length ? `The White Lady! -${GHOST_DAMAGE}%` : 'The White Lady!');
   // She fades out and comes back from the far corner, so you get a moment to run.
   lady.cooldown = 2.5;
@@ -55,6 +57,7 @@ function updateGhost(dt) {
     lady.active = true;
     lady.pos.copy(START);
     toast('Someone is standing by the graves...');
+    play('ghost');
   }
   lady.cooldown -= dt;
   group.visible = lady.cooldown <= 0;

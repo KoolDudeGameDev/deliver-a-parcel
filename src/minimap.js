@@ -7,6 +7,8 @@ import { body, player } from './player.js';
 import { orders, capacity, nearestOrder } from './orders.js';
 import { dogs } from './dogs.js';
 import { lady } from './ghost.js';
+import { dealer } from './contraband.js';
+import { cars } from './police.js';
 import { myLot } from './home.js';
 
 const mini = $('mini'), mx = mini.getContext('2d');
@@ -87,6 +89,8 @@ function updateMini(now) {
     mx.stroke();
   };
   for (const d of dogs) marker(...toMini(d.pos.x, d.pos.z), dot * (.4 + d.scale * .4), '#e0352b');
+  if (dealer.visible) marker(...toMini(dealer.position.x, dealer.position.z, true), dot * 1.3, '#b14dff');
+  for (const c of cars) marker(...toMini(c.pos.x, c.pos.z, c.mode === 'chase'), dot * .9, c.mode === 'chase' && now % 240 < 120 ? '#e0352b' : '#2f7de0');
   if (lady.active) marker(...toMini(lady.pos.x, lady.pos.z), dot, '#ffffff');
   if (myLot()) marker(...toMini(myLot().x, myLot().z, true), dot * 1.5, '#2f7de0');
   if (orders.length < capacity()) marker(...toMini(HUB.x, HUB.z, true), dot * 1.4, '#35d873');

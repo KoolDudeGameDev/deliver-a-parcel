@@ -36,7 +36,7 @@ function movePlayer(dt) {
   const sprinting = (keys.ShiftLeft || keys.ShiftRight || controls.sprintHeld) && moving && !p.winded;
   p.stamina = clamp(p.stamina + (sprinting ? -30 : 18) * dt, 0, 100);
   if (myLot() && nearSpot(myLot().step, 3.6)) p.stamina = Math.min(100, p.stamina + 60 * dt);
-  const speed = (ride ? ride.speed * (sprinting ? RIDE_SPRINT : 1) : sprinting ? SPRINT : RUN) * (orders.some(o => !o.food) ? PARCEL_SLOW : 1);
+  const speed = (ride ? ride.speed * (sprinting ? RIDE_SPRINT : 1) : sprinting ? SPRINT : RUN) * (orders.some(o => !o.food && !o.light) ? PARCEL_SLOW : 1);
 
   // On a phone the left thumb also steers the camera a little, so you can play one-handed.
   if (stick.id !== null && controls.lookId === null) view.yaw -= ix * 1.1 * dt;

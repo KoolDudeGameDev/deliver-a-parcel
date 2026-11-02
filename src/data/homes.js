@@ -11,10 +11,11 @@ function pitchedRoof(w, h, d, color, y, g, x = 0) {
   g.add(m);
 }
 
-// Every player starts on the first row. size is half the footprint, for the collider.
+// Every player starts on the first row. size is half the footprint, before scale. scale sets it
+// against the town: a bungalow matches a medium customer house, and a mansion beats a large one.
 const HOMES = [
   {
-    name: 'Cardboard box', price: 0, bonus: 0, size: [2, 1.8],
+    name: 'Cardboard box', price: 0, bonus: 0, scale: 1.25, size: [2, 1.8],
     model(g) {
       box(3.6, 2.6, 3.2, 0xb98a56, 0, 1.3, 0, g);
       box(3.64, .2, .5, 0xd9c79a, 0, 2.5, 0, g);
@@ -23,7 +24,7 @@ const HOMES = [
     },
   },
   {
-    name: 'Wooden shack', price: 300, bonus: .05, size: [3.2, 2.7],
+    name: 'Wooden shack', price: 300, bonus: .05, scale: 1.45, size: [3.2, 2.7],
     model(g) {
       box(6, 3.2, 5, 0x9a7350, 0, 1.6, 0, g);
       box(6.9, .3, 5.9, 0x8f9aa6, 0, 3.35, 0, g);
@@ -32,7 +33,7 @@ const HOMES = [
     },
   },
   {
-    name: 'Bungalow', price: 1000, bonus: .1, size: [4.2, 3.4],
+    name: 'Bungalow', price: 1000, bonus: .1, scale: 1.7, size: [4.2, 3.4],
     model(g) {
       box(8, 3.6, 6.5, 0xe8dcc4, 0, 1.8, 0, g);
       pitchedRoof(9.4, 3, 7.9, 0x8a4b38, 3.6, g);
@@ -41,7 +42,7 @@ const HOMES = [
     },
   },
   {
-    name: 'Two-storey house', price: 3000, bonus: .15, size: [7.5, 4],
+    name: 'Two-storey house', price: 3000, bonus: .15, scale: 1.55, size: [7.5, 4],
     model(g) {
       box(10, 6.6, 7.5, 0xd8e0ea, -2, 3.3, 0, g);
       pitchedRoof(11.4, 3.2, 8.9, 0x56606e, 6.6, g, -2);
@@ -56,7 +57,7 @@ const HOMES = [
     },
   },
   {
-    name: 'Mansion', price: 9000, bonus: .25, size: [11, 4.2],
+    name: 'Mansion', price: 9000, bonus: .25, scale: 1.5, size: [11, 4.2],
     model(g) {
       box(10, 8, 8, 0xf4efe4, 0, 4, 0, g);
       pitchedRoof(11.6, 3.4, 9.6, 0x2f3b52, 8, g);

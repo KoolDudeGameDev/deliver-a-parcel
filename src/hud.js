@@ -13,6 +13,7 @@ function updateHud(now) {
   $('staminaBar').firstElementChild.style.transform = `scaleX(${player.stamina / 100})`;
   $('job').style.visibility = orders.length ? 'visible' : 'hidden';
   $('nightTag').style.visibility = clock.night > .5 ? 'visible' : 'hidden';
+  $('ratingTag').textContent = save.ratingCount ? `★ ${(save.ratingSum / save.ratingCount).toFixed(1)} rating` : '';
   const spot = actionSpot();
   $('btnAction').classList.toggle('ready', !!spot);
   $('btnAction').textContent = spot || 'ACTION';
@@ -20,8 +21,9 @@ function updateHud(now) {
   beamMaterial.opacity = .28 + Math.sin(now / 200) * .1;
   const press = isTouch ? 'Tap' : 'Press E:', deal = affordable();
   $('hint').textContent =
-    spot === 'ORDER' ? `${press} take an order${orders.length ? ` (${orders.length} of ${capacity()} carried)` : ''}` :
+    spot === 'ORDER' ? `${press} open the order board${orders.length ? ` (${orders.length} of ${capacity()} carried)` : ''}` :
     spot === 'HOME' ? `${press} open your home` :
+    spot === 'DEAL' ? `${press} take the shady package` :
     orders.length ? '' :
     !save.delivered ? (isTouch ? 'Left thumb moves, right thumb looks. Follow the green dot for orders' : 'WASD move · Shift sprint · Space jump · drag to look · follow the green dot for orders') :
     deal ? `You can afford: ${deal.name}. Follow the blue dot home` : '';
@@ -32,7 +34,7 @@ function updateHud(now) {
   const ahead = dx * -s + dz * -c, right = dx * c + dz * -s;
   $('arrow').style.transform = `rotate(${Math.atan2(right, ahead)}rad)`;
   $('dist').textContent = `${Math.round(Math.hypot(dx, dz))}m`;
-  $('orderName').textContent = `${o.food ? 'Food' : 'Parcel'} to ${o.house.place || `${o.house.name} house`}`;
+  $('orderName').textContent = o.title;
   $('freshLabel').textContent = o.food ? 'Freshness' : 'Condition';
   $('timeLeft').textContent = `${Math.ceil(o.left)}s`;
   $('timeBar').firstElementChild.style.transform = `scaleX(${o.left / o.max})`;

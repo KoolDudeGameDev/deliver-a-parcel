@@ -1,14 +1,14 @@
 // Starts the game and runs the frame loop.
 import { view } from './state.js';
 import { DOG_TYPES } from './config.js';
-import { renderer, scene, camera, blocks, walls } from './engine.js';
+import { renderer, scene, camera, blocks, walls, colliders } from './engine.js';
 import { VEHICLES } from './data/vehicles.js';
 import { HOMES } from './data/homes.js';
-import { HOUSES, LOTS } from './world.js';
+import { ROADS, HOUSES, LOTS } from './world.js';
 import { clock, updateDay } from './daynight.js';
 import { player } from './player.js';
 import { save, rideStats } from './save.js';
-import { orders, capacity, takeOrder, updateOrder } from './orders.js';
+import { orders, capacity, currentOffers, renewOffers, acceptOffer, offerProblem, updateOrder } from './orders.js';
 import { dogs, updateDog } from './dogs.js';
 import { myLot, showHome, goHome, claimLot, claimBox, buyHome, buyVehicle, buyPart, actionSpot, action, setVehicle, parked } from './home.js';
 import { movePlayer } from './movement.js';
@@ -17,6 +17,10 @@ import { updateHud } from './hud.js';
 import { updateMini } from './minimap.js';
 import { citizens, updateCitizens } from './citizens.js';
 import { lady, updateGhost } from './ghost.js';
+import { updateHub } from './hub.js';
+import { dealer, buyer, nearDealer, takePackage, updateContraband } from './contraband.js';
+import { cars, updatePolice, arrest } from './police.js';
+import { sounds } from './audio.js';
 import './input.js';
 
 // Back home if there's a home to come back to. First timers get a name prompt, then a box.
@@ -36,6 +40,9 @@ renderer.setAnimationLoop(now => {
   dogs.forEach(d => updateDog(d, dt));
   updateCitizens(dt);
   updateGhost(dt);
+  updateHub(dt);
+  updateContraband(dt);
+  updatePolice(dt);
   updateOrder(dt);
   updateCamera(dt);
   updateDay(dt);
@@ -46,7 +53,7 @@ renderer.setAnimationLoop(now => {
 
 // Handle for scripted checks from the console.
 window.game = {
-  player, dogs, citizens, lady, clock, HOUSES, takeOrder, renderer, walls, blocks,
+  player, dogs, citizens, sounds, lady, clock, dealer, buyer, nearDealer, takePackage, cars, arrest, colliders, ROADS, HOUSES, currentOffers, renewOffers, acceptOffer, offerProblem, renderer, walls, blocks,
   get dayTime() { return clock.time; }, set dayTime(v) { clock.time = v; },
   LOTS, HOMES, VEHICLES, DOG_TYPES, orders, save, action, actionSpot, capacity, rideStats,
   buyVehicle, buyPart, buyHome, setVehicle, claimLot, showHome, get order() { return orders[0]; }, get cash() { return save.cash; }, get delivered() { return save.delivered; },

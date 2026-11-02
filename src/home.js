@@ -8,7 +8,9 @@ import { HOMES } from './data/homes.js';
 import { LOTS, showLotHome, homeRing } from './world.js';
 import { body, player } from './player.js';
 import { save, saveGame, rideStats } from './save.js';
-import { orders, nearHub, capacity, syncCarry, takeOrder } from './orders.js';
+import { orders, nearHub, capacity, syncCarry } from './orders.js';
+import { boardBox, openBoard } from './board.js';
+import { nearDealer, takePackage } from './contraband.js';
 
 const myLot = () => LOTS[save.slot];
 const nearSpot = (spot, r) => Math.hypot(player.pos.x - spot.x, player.pos.z - spot.z) < r;
@@ -38,7 +40,7 @@ function claimLot(lot, name) {
 }
 
 const claimBox = $('claimBox'), garageBox = $('garageBox');
-const dialogOpen = () => claimBox.open || garageBox.open;
+const dialogOpen = () => claimBox.open || garageBox.open || boardBox.open;
 claimBox.addEventListener('close', () => {
   claimLot(LOTS[Math.floor(Math.random() * LOTS.length)], $('nameInput').value.trim() || 'Rider');
 });
@@ -146,13 +148,15 @@ function openGarage() {
 // What the action button would do right here.
 function actionSpot() {
   if (orders.length < capacity() && nearHub()) return 'ORDER';
+  if (nearDealer()) return 'DEAL';
   if (myLot() && nearSpot(myLot().step, 3.6)) return 'HOME';
   return null;
 }
 
 function action() {
   const spot = actionSpot();
-  if (spot === 'ORDER') takeOrder();
+  if (spot === 'ORDER') openBoard();
+  else if (spot === 'DEAL') takePackage();
   else if (spot === 'HOME') openGarage();
 }
 

@@ -75,6 +75,12 @@ body.touch #touch { display: block; }
 #btnJump { width: 72px; height: 72px; right: calc(16px + env(safe-area-inset-right)); bottom: calc(14px + env(safe-area-inset-bottom)); }
 #btnSprint { width: 72px; height: 72px; right: calc(104px + env(safe-area-inset-right)); bottom: calc(14px + env(safe-area-inset-bottom)); }
 
+#btnMute {
+  position: fixed; right: 14px; top: 192px; padding: 6px 10px; border: 0; border-radius: 8px;
+  background: rgba(10,20,35,.55); color: #fff; font: inherit; font-size: 12px; cursor: pointer;
+}
+@media (max-width: 760px), (max-height: 500px) { #btnMute { top: 128px; right: 12px; } }
+
 dialog {
   width: min(92vw, 380px); max-height: 92dvh; overflow: auto; padding: 16px 18px; border: 0; border-radius: 16px;
   background: #16202e; color: #fff; font: inherit; touch-action: pan-y; box-shadow: 0 12px 40px rgba(0,0,0,.5);

@@ -20,7 +20,7 @@ Every new mechanic should strengthen at least one of those.
 
 ## The loop today
 
-1. Take an order at the hub.
+1. Choose an order from the board at the hub, or a shady job after dark.
 2. Ride out, park at the gate, and get past the dog or the White Lady to the door.
 3. Get paid, with a tip for speed and condition.
 4. Go home, spend, and go back out faster, carrying more.
@@ -39,25 +39,22 @@ At about 45 seconds a delivery, that's nearly four hours of play to finish the g
 
 ## What's missing
 
-- **No choices at the hub.** You get a random order, so there's no decision to make.
 - **Nothing to do after the mansion.** Once you've bought everything, cash means nothing.
 - **Little reason to come back tomorrow.**
-- **No way to measure skill.** Two players with the same upgrades look identical.
-- **The risk of a sidecar isn't fully used.** Carrying more should feel more dangerous.
-- **No sound.** Chases, bites and tips would all feel much better with it.
 
 ## The plan
 
-### Phase 1: make every delivery a decision
+### Phase 1: make every delivery a decision (done)
 
-1. **Order board.** The hub offers three orders to choose from, showing the place, pay and any
-   risk, such as a giant dog or the cemetery at night. This is the most valuable next step,
-   because it turns a random task into a choice.
-2. **Star rating.** Each delivery earns one to five stars from speed and condition. Your average
-   shows on your HUD, and a higher rating unlocks better-paying orders.
-3. **New order types.** Fragile parcels take double damage. Rush orders pay double with half the
-   time. Big parcels need a sidecar.
-4. **Sound.** Footsteps, barks, bites, engine noise and the tip jingle.
+- **Order board.** The hub offers three orders with their difficulty, pay and time.
+- **Difficulty stars.** 1 is a nearby house with no dog, and 5 is the hardest, from distance, dog
+  size and night risk. Harder orders pay more.
+- **Star rating.** Each delivery earns one to five stars, and a good average unlocks harder orders.
+- **Order types.** Fragile parcels take double damage, rush orders pay double with little time, and
+  bulky parcels need a sidecar.
+- **Sound.** Free-to-use clips and a generated siren, with a mute button.
+- **Night jobs.** After dark, dealers offer shady packages for high pay. Police patrol the rings and
+  chase anyone carrying one, and an arrest costs 25% of your cash and every order.
 
 ### Phase 2: give players a reason to return
 
@@ -93,6 +90,8 @@ Multiplayer needs a small always-on server, about US$2–3 a month. See the READ
 - Does the 35% vehicle sprint make dogs and timers too easy on the road?
 - Does the night bonus actually get people out after dark?
 - Is four hours the right length for the climb from box to mansion?
+- Is a shady job worth the risk of losing 25% of your cash?
+- Can police be escaped too easily by hiding in a yard?
 
 ## Rules for new mechanics
 

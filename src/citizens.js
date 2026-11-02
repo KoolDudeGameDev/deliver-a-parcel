@@ -5,15 +5,16 @@ import * as THREE from 'three';
 import { isTouch, toast } from './util.js';
 import { view } from './state.js';
 import { HIT_SPEED, HIT_FINE, HIT_DAMAGE } from './config.js';
-import { scene, resolve } from './engine.js';
-import { RING, OUTER, ROAD_W } from './world.js';
+import { scene, box, resolve } from './engine.js';
+import { RING, OUTER, ROAD_W, COURT } from './world.js';
 import { clock } from './daynight.js';
 import { player } from './player.js';
 import { save, saveGame } from './save.js';
-import { orders } from './orders.js';
+import { hurtOrders } from './orders.js';
+import { play } from './audio.js';
 
 const INNER_WALKERS = 5, OUTER_WALKERS = 7, WALK_STRIDE = 3.2, DOG_EVERY = 3;
-const SOLID_R = 1, CARE_R = 55; // How close you bump into someone, and how far away they can go home unseen.
+const SOLID_R = 1, CARE_R = 55, SHOW_R = 130, RALLY_TIME = 1.1; // How close you bump into someone, and how far away they can go home unseen.
 const SKINS = [0xc99a6b, 0xb5835a, 0xd8ab7c, 0x9a6b45];
 const SHIRTS = [0xe0524d, 0x4d8de0, 0xe8c23c, 0x3fae68, 0xf4f1ea, 0xe77fb3, 0x8d63d6, 0xf0883a];
 const PANTS = [0x2b3a55, 0x3a3f48, 0x5a4636, 0x6c7a89];
@@ -71,6 +72,20 @@ function addWalkers(ring, count) {
 }
 addWalkers(RING, INNER_WALKERS);
 addWalkers(OUTER, OUTER_WALKERS);
+
+// The pickleball players, one at each end of the court. They're out day and night, and whatever
+// happens to them they get back up and carry on.
+for (const end of [-1, 1]) {
+  const skin = pick(SKINS), legs = pick(PANTS);
+  citizens.push({
+    end, x: COURT.x, along: 0, dir: 1, speed: 0, half: 0, scale: .95, phase: Math.random() * 6, swing: 0,
+    colors: [end < 0 ? 0xffd23f : 0xe0524d, skin, pick(HAIR), legs, legs, skin, skin], nightOwl: true, away: false, fall: null, dog: null,
+  });
+}
+const players = citizens.filter(c => c.end);
+const paddles = players.map(() => box(.5, .65, .1, 0x2b2f36, 0, 0, 0));
+const ball = box(.3, .3, .3, 0xd8f24a, 0, 0, 0);
+const rally = { t: 0, end: -1, fromX: 0, toX: 2 };
 const walkers = citizens.filter(c => c.dog);
 
 function crowdMesh(count) {
@@ -99,6 +114,26 @@ function onLoop(half, along) {
   return [-half, -t, Math.PI];
 }
 
+function updateRally(dt, near) {
+  ball.visible = near;
+  paddles.forEach(p => { p.visible = near; });
+  // Nobody plays on while someone's flat on their back. The ball waits by the net.
+  if (players.some(c => c.fall)) {
+    ball.position.set(COURT.x + 1, .3, COURT.z + 1);
+    return;
+  }
+  rally.t += dt / RALLY_TIME;
+  if (rally.t >= 1) {
+    rally.t -= 1;
+    rally.end = -rally.end;
+    rally.fromX = rally.toX;
+    rally.toX = (Math.random() - .5) * 7;
+    players.find(c => c.end === rally.end).swing = 1;
+  }
+  const { t, end, fromX, toX } = rally;
+  ball.position.set(COURT.x + fromX + (toX - fromX) * t, 1.5 + Math.sin(t * Math.PI) * 1.6, COURT.z + end * COURT.half * (1 - 2 * t));
+}
+
 function hit(c, x, z, pace) {
   const p = player;
   c.fall = { x, z, y: .1, vx: p.vx * .8, vz: p.vz * .8, vy: 5 + pace * .15, roll: 0, time: 3.4 };
@@ -106,10 +141,15 @@ function hit(c, x, z, pace) {
   p.vz *= .45;
   p.stun = .15;
   view.shake = .3;
+  play('hit');
+  if (c.end) {
+    toast('Point!');
+    return;
+  }
   const fine = Math.min(HIT_FINE, save.cash);
   save.cash -= fine;
   saveGame();
-  for (const o of orders) o.fresh = Math.max(0, o.fresh - HIT_DAMAGE);
+  hurtOrders(HIT_DAMAGE);
   toast(`Hoy! Watch it! -₱${fine}`);
 }
 
@@ -143,8 +183,15 @@ function tumble(c, homeX, homeZ, dt) {
 function updateCitizens(dt) {
   const px = player.pos.x, pz = player.pos.z, pace = Math.hypot(player.vx, player.vz);
   let dogIndex = 0;
+  updateRally(dt, Math.hypot(px - COURT.x, pz - COURT.z) < SHOW_R);
   citizens.forEach((c, i) => {
-    const [homeX, homeZ, facing] = onLoop(c.half, c.along);
+    if (c.end) {
+      // Shuffle across to meet the ball, or back to the middle once it's been hit.
+      const target = rally.end === -c.end ? rally.toX : 0;
+      c.x += (COURT.x + target - c.x) * Math.min(1, 3 * dt);
+      c.swing = Math.max(0, c.swing - dt * 3);
+    }
+    const [homeX, homeZ, facing] = c.end ? [c.x, COURT.z + c.end * COURT.half, c.end > 0 ? Math.PI : 0] : onLoop(c.half, c.along);
     const gap = Math.hypot(px - homeX, pz - homeZ);
     if (!c.nightOwl && gap > CARE_R) c.away = clock.night > .5;
 
@@ -171,8 +218,17 @@ function updateCitizens(dt) {
     rig.scale.setScalar(c.away ? 0 : c.scale);
     hipL.rotation.x = shoulderR.rotation.x = swing;
     hipR.rotation.x = shoulderL.rotation.x = -swing;
+    if (c.end) {
+      hipL.rotation.x = hipR.rotation.x = shoulderL.rotation.x = 0;
+      shoulderR.rotation.x = -.9 - c.swing * 1.5;
+    }
     rig.updateMatrixWorld(true);
     PARTS.forEach((o, p) => crowd.setMatrixAt(i * PARTS.length + p, o.matrixWorld));
+    if (c.end) {
+      const paddle = paddles[players.indexOf(c)];
+      paddle.position.setFromMatrixPosition(hand.matrixWorld);
+      paddle.rotation.y = rig.rotation.y;
+    }
 
     if (c.dog) {
       const base = dogIndex++ * (DOG_PARTS.length + 1);
@@ -195,4 +251,4 @@ function updateCitizens(dt) {
   pack.instanceMatrix.needsUpdate = true;
 }
 
-export { citizens, updateCitizens };
+export { citizens, onLoop, updateCitizens };
