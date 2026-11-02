@@ -120,5 +120,6 @@ Good places to start:
 
 ## License
 
-[MIT](LICENSE). The bundled three.js is also MIT, with its copyright notice kept at the top of
-`vendor/three.module.js`.
+The code is [MIT](LICENSE). The bundled three.js is also MIT, with its copyright notice kept at the top
+of `vendor/three.module.js`. Sound clips have their own terms: see `assets/sfx/CREDITS.md`, because one
+of them isn't covered by the MIT license.

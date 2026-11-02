@@ -41,7 +41,8 @@ its owner, because ES module exports are read-only to importers.
 - Keep draw calls near 100 in the phone setup (`?touch` in the URL). Check `renderer.info.render.calls`.
 - Vehicles auto-park at customer gates. That keeps the dog chase on foot, so don't remove it.
 - A new saved field needs a default and a check in `loadSave()` in `save.js`.
-- Only add sound clips with a confirmed free licence, and credit them in `assets/sfx/CREDITS.md`.
+- Prefer sound clips with a confirmed free licence. Every clip goes in `assets/sfx/CREDITS.md`, with
+  anything not free listed under "Not CC0".
 - `main` is protected: changes go through a pull request.
 
 ## Checking changes
