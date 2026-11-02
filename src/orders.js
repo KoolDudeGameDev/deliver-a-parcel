@@ -36,12 +36,12 @@ function syncCarry() {
 
 function takeOrder() {
   if (orders.length >= capacity() || !nearHub()) return;
-  // Dog yards come up about twice as often: they're the fun part.
-  const pool = HOUSES.flatMap(h => (h.dog ? [h, h] : [h])).filter(h => h !== lastHouse && !orders.some(o => o.house === h));
+  // Dog yards come up about twice as often: they're the fun part. A place can set its own weight.
+  const pool = HOUSES.flatMap(h => Array(h.weight ?? (h.dog ? 2 : 1)).fill(h)).filter(h => h !== lastHouse && !orders.some(o => o.house === h));
   const house = pool[Math.floor(Math.random() * pool.length)];
   // Time is what a runner needs to get there plus a margin, so faster vehicles keep more of it as tip.
-  const food = Math.random() < .6, dist = Math.hypot(house.step.x - HUB.x, house.step.z - HUB.z);
-  const max = food ? FOOD_TIME + dist / RUN * 1.25 : PARCEL_TIME + dist / RUN * 1.6;
+  const food = !house.parcelOnly && Math.random() < .6, dist = Math.hypot(house.step.x - HUB.x, house.step.z - HUB.z);
+  const max = (food ? FOOD_TIME + dist / RUN * 1.25 : PARCEL_TIME + dist / RUN * 1.6) + (house.extraTime || 0);
   const pay = (food ? FOOD_PAY : PARCEL_PAY) + Math.round(Math.max(0, dist - 60) * FAR_PAY);
   const beam = beams.find(b => !b.visible);
   beam.position.set(house.step.x, 8, house.step.z);
