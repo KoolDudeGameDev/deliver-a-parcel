@@ -1,7 +1,7 @@
 // Moves the player each frame.
 import { clamp } from './util.js';
 import { view, controls, keys, stick } from './state.js';
-import { RUN, SPRINT, PARCEL_SLOW, JUMP_V, GRAVITY } from './config.js';
+import { RUN, SPRINT, RIDE_SPRINT, PARCEL_SLOW, JUMP_V, GRAVITY } from './config.js';
 import { sun, resolve } from './engine.js';
 import { EDGE, HOUSES } from './world.js';
 import { sunDir } from './daynight.js';
@@ -30,10 +30,13 @@ function movePlayer(dt) {
   const ride = parked ? null : rideNow;
 
   const moving = Math.hypot(ix, iz) > .05;
-  const sprinting = !ride && (keys.ShiftLeft || keys.ShiftRight || controls.sprintHeld) && moving && p.stamina > 0;
+  // Run out and you're winded for a bit, or regen would restart the sprint on the very next frame.
+  if (p.stamina <= 0) p.winded = true;
+  else if (p.stamina >= 25) p.winded = false;
+  const sprinting = (keys.ShiftLeft || keys.ShiftRight || controls.sprintHeld) && moving && !p.winded;
   p.stamina = clamp(p.stamina + (sprinting ? -30 : 18) * dt, 0, 100);
   if (myLot() && nearSpot(myLot().step, 3.6)) p.stamina = Math.min(100, p.stamina + 60 * dt);
-  const speed = (ride ? ride.speed : sprinting ? SPRINT : RUN) * (orders.some(o => !o.food) ? PARCEL_SLOW : 1);
+  const speed = (ride ? ride.speed * (sprinting ? RIDE_SPRINT : 1) : sprinting ? SPRINT : RUN) * (orders.some(o => !o.food) ? PARCEL_SLOW : 1);
 
   // On a phone the left thumb also steers the camera a little, so you can play one-handed.
   if (stick.id !== null && controls.lookId === null) view.yaw -= ix * 1.1 * dt;

@@ -12,8 +12,8 @@ Watch out for the dogs.
 - Food pays better when it's fast. Parcels are heavy and slow you down.
 - Yards have dogs in five sizes. Tiny ones are quick, and giant ones hit hard. You always walk
   through a gate, so the chase stays on foot.
-- Some parcels go to the cemetery. Park at the gate and find your way past the graves to the
-  chapel door.
+- Some parcels go to the cemetery. Park at the gate and find your way between the tombs to the
+  right grave.
 - Spend your cash at home, the blue dot. Upgrade your house for better pay, and upgrade your ride
   with bigger wheels, baskets and sidecars so you can carry more orders.
 
@@ -61,6 +61,7 @@ src/
   daynight.js       the day-to-night cycle
   player.js         the player character
   dogs.js           dog behaviour
+  citizens.js       people walking the sidewalks
   orders.js         taking and delivering orders
   home.js           your home, upgrades, and riding
   save.js           saved progress

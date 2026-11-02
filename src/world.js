@@ -276,7 +276,8 @@ function showLotHome(l, level) {
 }
 LOTS.forEach(l => showLotHome(l, 0));
 
-// The cemetery: a walled yard on the outer ring. Parcels go to the chapel door, past the graves.
+// The cemetery: a walled Filipino graveyard on the outer ring, with painted tombs on the ground
+// and apartment tombs stacked like cabinets. Parcels go to one grave near the far wall.
 // Built after the home sites and without rnd(), so it can't move anyone's home.
 {
   const x0 = 68, x1 = 108, z0 = 70, z1 = 106, x = (x0 + x1) / 2, z = (z0 + z1) / 2;
@@ -292,42 +293,78 @@ LOTS.forEach(l => showLotHome(l, 0));
   wall(x1, z0 + side / 2, .6, side);
   wall(x1, z1 - side / 2, .6, side);
 
-  // Gate, with a path from the road to the chapel door.
+  // Gate, and paths from the road along the middle aisle and up the west side.
   for (const s of [-1, 1]) block(.9, 3.4, .9, STONE, x1, 1.7, z + s * GATE_GAP);
   block(.7, .5, GATE_GAP * 2 + .9, IRON, x1, 3.6, z);
   sign(['CEMETERY'], '#2b2f36', '#e8e4d8', 6, 1.5, x1, 4.7, z, Math.PI / 2);
-  block(38.8, .04, 3.6, PATH, 93.6, .05, z);
-  block(3.6, .04, 5.2, PATH, 76, .05, 85.6);
+  block(40.5, .04, 3.6, PATH, 92.75, .05, z);
+  block(3.6, .04, 11, PATH, 74.5, .05, 82.5);
 
-  walls.push({ w: 10, h: 6, d: 9, color: 0xb9b3a6, x: 76, y: 3, z: 77 });
-  roofs.push({ w: 11.4, h: 4, d: 10.4, color: 0x4a4f5a, x: 76, y: 8, z: 77 });
-  addCollider(76, 77, 5, 4.5);
-  block(.3, 1.8, .3, IRON, 76, 10.6, 77);
-  block(1.1, .3, .3, IRON, 76, 10.9, 77);
-  block(2, 3.4, .2, 0x3a2a1c, 76, 1.7, 81.55);
-  block(4, .12, 2.2, 0xbdb8aa, 76, .1, 83.1);
-
-  // Rows of graves in three styles, leaving room around the path and the chapel.
-  let n = 0;
-  for (const tz of [74, 78.5, 83, 93, 97.5, 102]) {
-    for (let tx = 73; tx <= 104; tx += 4.5) {
-      if (tx < 84 && tz < 86) continue;
-      const style = n++ % 3, c = n % 2 ? 0x9a9ea5 : 0x7f838b;
-      if (style === 0) {
-        block(1.2, 1.1, .3, c, tx, .55, tz);
-        block(.8, .3, .3, c, tx, 1.25, tz);
-      } else if (style === 1) {
-        block(.28, 1.6, .28, c, tx, .8, tz);
-        block(1, .28, .28, c, tx, 1.1, tz);
-      } else {
-        block(1.2, .9, .25, c, tx, .45, tz);
-        block(1.4, .4, 2, c, tx, .2, tz + 1.1);
+  // Apartment tombs: rows of niches stacked four high. (ax, az) is the middle of the front face,
+  // (ux, uz) runs along it, and (nx, nz) points out of it.
+  const CELL = 1.5, CELL_H = 1.15, ROWS = 4, DEPTH = 2.4;
+  const PLATES = [0xf4f1ea, 0xe6e1d6, 0xd5dde2, 0xeadcd6];
+  const FLOWERS = [0xe0443a, 0xffd23f, 0xe77fb3, 0xffffff];
+  const apartments = (ax, az, ux, uz, nx, nz, cells) => {
+    const len = cells * CELL, bx = ax - nx * DEPTH / 2, bz = az - nz * DEPTH / 2, h = ROWS * CELL_H + .2;
+    block(ux ? len : DEPTH, h, uz ? len : DEPTH, 0xdcd8cc, bx, h / 2, bz);
+    block(ux ? len + .6 : DEPTH + .5, .25, uz ? len + .6 : DEPTH + .5, 0x9fc6d9, bx, h + .12, bz);
+    addCollider(bx, bz, (ux ? len : DEPTH) / 2, (uz ? len : DEPTH) / 2);
+    for (let c = 0; c < cells; c++) {
+      const offset = (c - (cells - 1) / 2) * CELL, px = ax + ux * offset, pz = az + uz * offset;
+      for (let r = 0; r < ROWS; r++) {
+        const y = .2 + (r + .5) * CELL_H, pick = (c * 5 + r * 3) % 7;
+        // A few niches are still empty, so they stay dark.
+        const color = pick === 6 ? 0x3a3f48 : PLATES[pick % PLATES.length];
+        block(ux ? CELL - .14 : .08, CELL_H - .14, uz ? CELL - .14 : .08, color, px + nx * .04, y, pz + nz * .04);
+        if (pick === 2 || pick === 4) {
+          block(.3, .22, .3, 0xb7b2a6, px + nx * .18, y - .42, pz + nz * .18);
+          block(.34, .3, .34, FLOWERS[(c + r) % FLOWERS.length], px + nx * .18, y - .18, pz + nz * .18);
+        }
       }
-      addCollider(tx, tz + (style === 2 ? .9 : 0), .7, style === 2 ? 1.2 : .35);
+    }
+  };
+  apartments(71.4, 88, 0, 1, 1, 0, 18);
+  apartments(89, 73.4, 1, 0, 0, 1, 20);
+  apartments(89, 102.6, 1, 0, 0, -1, 20);
+
+  // Tombs on the ground, painted in the usual pale colours, in three styles.
+  const PAINT = [0xf1efe9, 0xbcdff0, 0xf4c6d0, 0xc7e8c5, 0xe9e3b8];
+  const cross = (tx, y, tz) => {
+    block(.2, 1.4, .2, 0xffffff, tx, y + .7, tz);
+    block(.8, .2, .2, 0xffffff, tx, y + .95, tz);
+  };
+  let n = 0;
+  for (const tz of [77.5, 82, 94, 98.5]) {
+    for (let tx = 79; tx <= 104; tx += 4.5) {
+      const style = n % 3, c = PAINT[n % PAINT.length];
+      n++;
+      block(1.7, .7, 2.6, c, tx, .35, tz);
+      if (style === 0) {
+        block(1.9, .12, 2.8, 0xe6e1d6, tx, .76, tz);
+        cross(tx, .8, tz - 1.1);
+      } else if (style === 1) {
+        // A small family tomb with its own roof.
+        block(1.7, 1.3, 2.6, c, tx, 1.35, tz);
+        block(2.2, .22, 3.1, 0x9fc6d9, tx, 2.1, tz);
+        cross(tx, 2.2, tz);
+      } else {
+        // Two tombs stacked on the same plot.
+        block(1.7, .7, 2.6, PAINT[(n + 2) % PAINT.length], tx, 1.08, tz);
+        cross(tx, 1.43, tz - 1.1);
+      }
+      addCollider(tx, tz, .95, 1.4);
     }
   }
 
-  for (const [tx, tz] of [[106, 103], [70.5, 90], [106, 72.5]]) {
+  // The parcel goes to this grave, beside the west wall.
+  block(1.7, .7, 2.6, 0xbcdff0, 74.5, .35, 75.5);
+  block(1.9, .12, 2.8, 0xe6e1d6, 74.5, .76, 75.5);
+  cross(74.5, .8, 74.4);
+  block(.4, .3, .4, FLOWERS[0], 74.5, .96, 76.3);
+  addCollider(74.5, 75.5, .95, 1.4);
+
+  for (const [tx, tz] of [[106, 104], [106, 72], [76, 97]]) {
     block(.7, 5, .7, 0x4a3a2c, tx, 2.5, tz);
     block(2.6, .3, .3, 0x4a3a2c, tx, 3.6, tz);
     block(.3, .3, 2.2, 0x4a3a2c, tx, 4.4, tz);
@@ -337,7 +374,7 @@ LOTS.forEach(l => showLotHome(l, 0));
   taken.push([x, z, 22]);
   HOUSES.push({
     name: 'Cemetery', place: 'the cemetery', x, z, dx: -1, dz: 0, dog: null, mapColor: '#8fa08a',
-    yard: { x0, x1, z0, z1 }, step: new THREE.Vector3(76, 0, 83.2),
+    yard: { x0, x1, z0, z1 }, step: new THREE.Vector3(74.5, 0, 78.6),
     parcelOnly: true, weight: 3, extraTime: 10,
   });
 }
@@ -421,4 +458,4 @@ const lampPools = instanced(bulbs.map(b => ({ w: 13, h: 1, d: 13, color: 0xfffff
   new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), poolMaterial, false);
 scene.add(lampGlow);
 
-export { ROADS, EDGE, HUB, HUB_R, hubRing, HOUSES, YARD, LOTS, showLotHome, homeRing, TREES, wallMaterial, bulbMaterial, cloudMaterial, cloudMesh, glowMaterial, poolMaterial, lampGlow, lampPools };
+export { ROADS, RING, OUTER, ROAD_W, EDGE, HUB, HUB_R, hubRing, HOUSES, YARD, LOTS, showLotHome, homeRing, TREES, wallMaterial, bulbMaterial, cloudMaterial, cloudMesh, glowMaterial, poolMaterial, lampGlow, lampPools };

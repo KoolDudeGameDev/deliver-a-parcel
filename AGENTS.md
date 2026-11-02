@@ -22,6 +22,7 @@ Imports only point up this list. There are no circular imports, so keep it that 
 | `daynight.js`, `player.js` | Day cycle, the player and their model |
 | `save.js` | `save`, `loadSave`, `rideStats` |
 | `orders.js`, `dogs.js` | Orders, then dogs, which damage carried orders |
+| `citizens.js` | Sidewalk walkers, one shared `InstancedMesh`, scenery only |
 | `home.js` | Upgrade panel, `action`, mounting and parking vehicles |
 | `input.js`, `movement.js`, `camera.js` | Controls and per-frame movement |
 | `hud.js`, `minimap.js` | On-screen display |
