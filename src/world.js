@@ -420,6 +420,31 @@ function candle(x, y, z) {
   });
 }
 
+// A pickleball court where the match never ends. The players are in citizens.js.
+const COURT = { x: -92, z: 90, half: 8 };
+{
+  const { x, z } = COURT;
+  block(14, .05, 26, 0x2f7d5b, x, .03, z);
+  block(10, .06, 20, 0x3f8fc9, x, .04, z);
+  block(.12, .07, 20, 0xffffff, x, .05, z);
+  for (const s of [-1, 1]) block(10, .07, .12, 0xffffff, x, .05, z + s * 4.5);
+  block(10.4, .8, .08, 0xf2f2ee, x, .55, z);
+  for (const s of [-1, 1]) block(.16, 1.1, .16, 0x444a55, x + s * 5.2, .55, z);
+  addCollider(x, z, 5.3, .15);
+  taken.push([x, z, 15]);
+}
+
+// Somewhere open and off the road, a random distance from a point. Uses Math.random, not rnd().
+function clearSpot(fromX, fromZ, near, far) {
+  for (let i = 0; i < 300; i++) {
+    const a = Math.random() * Math.PI * 2, d = near + Math.random() * (far - near);
+    const x = fromX + Math.cos(a) * d, z = fromZ + Math.sin(a) * d;
+    if (Math.abs(x) > EDGE - 8 || Math.abs(z) > EDGE - 8 || Math.hypot(x, z) < 20) continue;
+    if (!isTaken(x, z, 2) && !onRoad(x, z, 3) && !TREES.some(([tx, tz]) => Math.hypot(x - tx, z - tz) < 6)) return [x, z];
+  }
+  return [-30, 30]; // Grass inside the inner ring, for the rare time nothing else turns up.
+}
+
 const TREE_LEAVES = [0x3f9b52, 0x358a48, 0x4caf5f, 0x2f7f45];
 const TREES = [];
 function addTree(x, z) {
@@ -506,4 +531,4 @@ const candleGlow = new THREE.Points(
   candleMaterial);
 scene.add(candleGlow);
 
-export { ROADS, RING, OUTER, ROAD_W, EDGE, HUB, HUB_R, BELT_Z, BELT_Y, BELT_HALF, hubRing, HOUSES, YARD, LOTS, showLotHome, homeRing, TREES, wallMaterial, bulbMaterial, cloudMaterial, cloudMesh, glowMaterial, poolMaterial, lampGlow, lampPools, candleMaterial, candleGlow };
+export { ROADS, RING, OUTER, ROAD_W, EDGE, COURT, clearSpot, HUB, HUB_R, BELT_Z, BELT_Y, BELT_HALF, hubRing, HOUSES, YARD, LOTS, showLotHome, homeRing, TREES, wallMaterial, bulbMaterial, cloudMaterial, cloudMesh, glowMaterial, poolMaterial, lampGlow, lampPools, candleMaterial, candleGlow };

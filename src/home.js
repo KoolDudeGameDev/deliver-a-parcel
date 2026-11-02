@@ -10,6 +10,7 @@ import { body, player } from './player.js';
 import { save, saveGame, rideStats } from './save.js';
 import { orders, nearHub, capacity, syncCarry } from './orders.js';
 import { boardBox, openBoard } from './board.js';
+import { nearDealer, takePackage } from './contraband.js';
 
 const myLot = () => LOTS[save.slot];
 const nearSpot = (spot, r) => Math.hypot(player.pos.x - spot.x, player.pos.z - spot.z) < r;
@@ -147,6 +148,7 @@ function openGarage() {
 // What the action button would do right here.
 function actionSpot() {
   if (orders.length < capacity() && nearHub()) return 'ORDER';
+  if (nearDealer()) return 'DEAL';
   if (myLot() && nearSpot(myLot().step, 3.6)) return 'HOME';
   return null;
 }
@@ -154,6 +156,7 @@ function actionSpot() {
 function action() {
   const spot = actionSpot();
   if (spot === 'ORDER') openBoard();
+  else if (spot === 'DEAL') takePackage();
   else if (spot === 'HOME') openGarage();
 }
 

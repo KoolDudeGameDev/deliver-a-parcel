@@ -23,6 +23,7 @@ function updateHud(now) {
   $('hint').textContent =
     spot === 'ORDER' ? `${press} open the order board${orders.length ? ` (${orders.length} of ${capacity()} carried)` : ''}` :
     spot === 'HOME' ? `${press} open your home` :
+    spot === 'DEAL' ? `${press} take the shady package` :
     orders.length ? '' :
     !save.delivered ? (isTouch ? 'Left thumb moves, right thumb looks. Follow the green dot for orders' : 'WASD move · Shift sprint · Space jump · drag to look · follow the green dot for orders') :
     deal ? `You can afford: ${deal.name}. Follow the blue dot home` : '';

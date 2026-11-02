@@ -5,6 +5,9 @@ const FOOD_TIME = 8, PARCEL_TIME = 14, FOOD_PAY = 30, PARCEL_PAY = 25, FAR_PAY =
 const STAR_PAY = .2, OFFER_COUNT = 3, OFFER_LIFE = 30; // Pay per difficulty star, and how the board refreshes.
 const HIT_SPEED = 7, HIT_FINE = 15, HIT_DAMAGE = 10; // Hitting a citizen: speed it takes, cost, order damage.
 const GHOST_SPEED = 3.4, GHOST_DAMAGE = 40;
+const CONTRABAND_PAY = 170, CONTRABAND_FAR_PAY = .8, ARREST_COST = .25; // Night jobs: pay, and what an arrest takes.
+// Police speeds, then how close they spot you, how far you must get, and for how many seconds.
+const POLICE_PATROL = 8, POLICE_CHASE = 19, POLICE_SEE = 32, POLICE_LOSE = 55, POLICE_GIVE_UP = 3;
 const DOG_TYPES = {
   tiny:   { scale: .45, speed: 8.2, knock: 3,  stun: .05, damage: 5, danger: .5 },
   small:  { scale: .65, speed: 7.5, knock: 5,  stun: .15, damage: 10, danger: 1 },
@@ -31,4 +34,4 @@ const DOG_BREEDS = {
   mastiff: { name: 'Mastiff', size: 'giant', coat: 0x4a4038, muzzle: 0x141210, ears: 'flop', fluffy: true, legs: .95, tail: 'long' },
 };
 
-export { RUN, SPRINT, RIDE_SPRINT, PARCEL_SLOW, JUMP_V, GRAVITY, FOOD_TIME, PARCEL_TIME, FOOD_PAY, PARCEL_PAY, FAR_PAY, NIGHT_PAY, STAR_PAY, OFFER_COUNT, OFFER_LIFE, HIT_SPEED, HIT_FINE, HIT_DAMAGE, GHOST_SPEED, GHOST_DAMAGE, DOG_TYPES, DOG_BREEDS };
+export { RUN, SPRINT, RIDE_SPRINT, PARCEL_SLOW, JUMP_V, GRAVITY, FOOD_TIME, PARCEL_TIME, FOOD_PAY, PARCEL_PAY, FAR_PAY, NIGHT_PAY, STAR_PAY, OFFER_COUNT, OFFER_LIFE, HIT_SPEED, HIT_FINE, HIT_DAMAGE, GHOST_SPEED, GHOST_DAMAGE, CONTRABAND_PAY, CONTRABAND_FAR_PAY, ARREST_COST, POLICE_PATROL, POLICE_CHASE, POLICE_SEE, POLICE_LOSE, POLICE_GIVE_UP, DOG_TYPES, DOG_BREEDS };

@@ -126,28 +126,33 @@ function endOrder(o) {
   syncCarry();
 }
 
+function clearOrders() {
+  for (const o of [...orders]) endOrder(o);
+}
+
 function updateOrder(dt) {
   for (const o of [...orders]) {
     o.left -= dt;
     if (o.left <= 0) {
-      rate(1);
+      if (!o.contraband) rate(1);
       saveGame();
-      toast('Too late! Order cancelled, 1 star');
+      toast(o.contraband ? 'Too late. The buyer left' : 'Too late! Order cancelled, 1 star');
       endOrder(o);
     } else if (Math.hypot(player.pos.x - o.house.step.x, player.pos.z - o.house.step.z) < 2.4) {
-      const tip = Math.round(o.pay * 1.5 * (o.left / o.max) * (o.fresh / 100));
-      const night = clock.night > .5;
+      // A shady job already pays well for the risk, so it gets no tip or night bonus on top.
+      const tip = o.contraband ? 0 : Math.round(o.pay * 1.5 * (o.left / o.max) * (o.fresh / 100));
+      const night = !o.contraband && clock.night > .5;
       const total = Math.round((o.pay + tip) * (1 + HOMES[save.homeLevel].bonus) * (night ? NIGHT_PAY : 1));
       // Rush orders run short on time by design, so the clock counts for less than the condition.
       const stars = clamp(Math.round(1 + 4 * (Math.min(1, o.left / o.max * 1.6) * .5 + o.fresh / 100 * .5)), 1, 5);
-      rate(stars);
+      if (!o.contraband) rate(stars);
       save.cash += total;
       save.delivered++;
       saveGame();
-      toast(`${starText(stars)} +₱${total}${night ? ' night pay' : ''}`);
+      toast(o.contraband ? `Deal done! +₱${total}` : `${starText(stars)} +₱${total}${night ? ' night pay' : ''}`);
       endOrder(o);
     }
   }
 }
 
-export { orders, nearHub, capacity, nearestOrder, syncCarry, currentOffers, renewOffers, acceptOffer, offerProblem, addOrder, starText, maxStars, hurtOrders, updateOrder, beamMaterial };
+export { orders, nearHub, capacity, nearestOrder, syncCarry, currentOffers, renewOffers, acceptOffer, offerProblem, addOrder, clearOrders, starText, maxStars, hurtOrders, updateOrder, beamMaterial };
