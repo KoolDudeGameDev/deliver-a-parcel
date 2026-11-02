@@ -13,6 +13,13 @@ const SOUNDS = {
   ghost: { file: 'ghost.mp3', volume: .9 },
 };
 
+// Background music: one long loop, streamed rather than decoded so it doesn't sit in a phone's
+// memory, and kept well under the effects.
+const MUSIC = { file: 'music-loop-town.mp3', volume: .35 };
+const music = new Audio(`assets/sfx/${MUSIC.file}`);
+music.loop = true;
+music.preload = 'none'; // Nothing downloads until the first tap.
+
 const sounds = {};
 let context = null, master = null, siren = null;
 
@@ -31,9 +38,18 @@ function start() {
   master.gain.value = save.muted ? 0 : 1;
   master.connect(context.destination);
   Object.keys(SOUNDS).forEach(load);
+  // Through a gain node, because iPhones ignore an audio element's own volume. Mute covers it too.
+  const gain = context.createGain();
+  gain.gain.value = MUSIC.volume;
+  context.createMediaElementSource(music).connect(gain).connect(master);
+  music.play().catch(() => {});
 }
 addEventListener('pointerdown', start);
 addEventListener('keydown', start);
+// No music from a tab in the background.
+document.addEventListener('visibilitychange', () => {
+  if (context) document.hidden ? music.pause() : music.play().catch(() => {});
+});
 
 // A goose or a cross cat: a short falling squawk, generated rather than a clip.
 function squawk() {
