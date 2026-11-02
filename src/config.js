@@ -21,7 +21,7 @@ const DOG_TYPES = {
 // A size sets how a dog plays, and a breed sets how it looks. A new breed is one more row, then
 // give it to a house in world.js. coat is the main colour, and the rest are optional: mark is the
 // patch on its back, muzzle its nose, ears 'up' or 'flop', tail 'up', 'curl' or 'long', len and
-// legs stretch its body and legs, and fluffy bulks it out.
+// legs stretch its body and legs, fluffy bulks it out, call is what it shouts, and sign is the yard's.
 const DOG_BREEDS = {
   chihuahua: { name: 'Chihuahua', size: 'tiny', coat: 0xe8d0a9, ears: 'up', legs: 1.1, tail: 'up' },
   pomeranian: { name: 'Pomeranian', size: 'tiny', coat: 0xe89a4a, ears: 'up', fluffy: true, len: .8, tail: 'curl' },
@@ -33,6 +33,8 @@ const DOG_BREEDS = {
   husky: { name: 'Husky', size: 'big', coat: 0xdfe4ea, mark: 0x4f5560, ears: 'up', fluffy: true, tail: 'curl' },
   greatDane: { name: 'Great Dane', size: 'giant', coat: 0x8f7f6e, muzzle: 0x1f1c1a, ears: 'flop', legs: 1.35, len: 1.1, tail: 'long' },
   saintBernard: { name: 'Saint Bernard', size: 'giant', coat: 0xf1ece0, mark: 0x8a4a22, ears: 'flop', fluffy: true, tail: 'long' },
+  cat: { name: 'Angry cat', size: 'tiny', coat: 0x6b6f78, ears: 'up', tail: 'up', len: .9, call: 'HISS!', sign: ['BEWARE', 'OF CAT'] },
+  goose: { name: 'Goose', size: 'small', coat: 0xf4f2ea, shape: 'goose', call: 'HONK!', sign: ['BEWARE', 'OF GOOSE'] },
   mastiff: { name: 'Mastiff', size: 'giant', coat: 0x4a4038, muzzle: 0x141210, ears: 'flop', fluffy: true, legs: .95, tail: 'long' },
 };
 

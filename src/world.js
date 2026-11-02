@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { isTouch } from './util.js';
 import { scene, colliders, solids, blocks, walls, roofs, bulbs, block, instanced, canvasTexture, speckle, addCollider, sign } from './engine.js';
 import { HOMES } from './data/homes.js';
+import { DOG_BREEDS } from './config.js';
 
 {
   const t = canvasTexture(128, 128, x => {
@@ -134,19 +135,19 @@ const HOUSES = [
   { name: 'Purple', color: 0x8d63d6, x: -62,  z: 30,   dx: 1,  dz: 0,  dog: null },
   { name: 'Teal',   color: 0x2fb5a8, x: -62,  z: -30,  dx: 1,  dz: 0,  dog: 'pomeranian', size: 'small' },
   // Just inside the outer ring, gates facing it.
-  { name: 'Coral',  color: 0xf0776a, x: -30,  z: -96,  dx: 0,  dz: -1, dog: null, size: 'small' },
+  { name: 'Coral',  color: 0xf0776a, x: -30,  z: -96,  dx: 0,  dz: -1, dog: 'cat', size: 'small' },
   { name: 'Lime',   color: 0x9ccc3c, x: 96,   z: -30,  dx: 1,  dz: 0,  dog: 'germanShepherd', size: 'large' },
   { name: 'Navy',   color: 0x3a5a9a, x: 30,   z: 96,   dx: 0,  dz: 1,  dog: 'aspin' },
   { name: 'Peach',  color: 0xf4b183, x: -96,  z: 30,   dx: -1, dz: 0,  dog: null, size: 'small' },
   // Outside the outer ring.
   { name: 'Gold',   color: 0xd6a520, x: 143,  z: -70,  dx: -1, dz: 0,  dog: 'greatDane', size: 'large' },
-  { name: 'Mint',   color: 0x7fd8b0, x: 143,  z: 70,   dx: -1, dz: 0,  dog: null },
+  { name: 'Mint',   color: 0x7fd8b0, x: 143,  z: 70,   dx: -1, dz: 0,  dog: 'cat' },
   { name: 'Rose',   color: 0xd85a7f, x: 70,   z: 143,  dx: 0,  dz: -1, dog: 'dachshund', size: 'small' },
   { name: 'Sky',    color: 0x6cc6ff, x: -70,  z: 143,  dx: 0,  dz: -1, dog: 'husky', size: 'large' },
-  { name: 'Lilac',  color: 0xb79ae0, x: -143, z: 70,   dx: 1,  dz: 0,  dog: null, size: 'small' },
+  { name: 'Lilac',  color: 0xb79ae0, x: -143, z: 70,   dx: 1,  dz: 0,  dog: 'goose', size: 'small' },
   { name: 'Brown',  color: 0x9a6a45, x: -143, z: -70,  dx: 1,  dz: 0,  dog: 'saintBernard', size: 'large' },
   { name: 'Indigo', color: 0x5560c8, x: -70,  z: -143, dx: 0,  dz: 1,  dog: 'aspin' },
-  { name: 'Cream',  color: 0xeadfba, x: 0,    z: -143, dx: 0,  dz: 1,  dog: null },
+  { name: 'Cream',  color: 0xeadfba, x: 0,    z: -143, dx: 0,  dz: 1,  dog: 'goose' },
   { name: 'Slate',  color: 0x6c7a89, x: 70,   z: -143, dx: 0,  dz: 1,  dog: 'mastiff', size: 'large' },
 ];
 
@@ -200,7 +201,7 @@ function buildHouse(h) {
   if (h.dog) {
     const [ax, az] = at(5.5, V + 1.2);
     block(.25, 2.3, .25, 0x7a5a3c, ax, 1.15, az);
-    sign(['BEWARE', 'OF DOG'], '#ffd23f', '#222', 3, 1.5, ax, 2.7, az, face);
+    sign(DOG_BREEDS[h.dog].sign ?? ['BEWARE', 'OF DOG'], '#ffd23f', '#222', 3, 1.5, ax, 2.7, az, face);
   }
 }
 HOUSES.forEach(buildHouse);

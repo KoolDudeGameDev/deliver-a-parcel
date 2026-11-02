@@ -79,7 +79,7 @@ function saveGame() {
 
 function rideStats(key) {
   if (!key) return { name: 'Running', speed: RUN, accel: 30, carry: 1, seat: 0, pose: null };
-  const v = VEHICLES[key], lv = save.parts[key], stats = { name: v.name, speed: v.speed, accel: v.accel, carry: 1, seat: v.seat(lv), pose: v.pose };
+  const v = VEHICLES[key], lv = save.parts[key], stats = { name: v.name, speed: v.speed, accel: v.accel, carry: v.carry ?? 1, seat: v.seat(lv), pose: v.pose };
   for (const [p, def] of Object.entries(v.parts)) {
     for (const stat of ['speed', 'accel', 'carry']) stats[stat] += (def[stat] || 0) * lv[p];
   }

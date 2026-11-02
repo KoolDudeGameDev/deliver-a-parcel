@@ -105,6 +105,45 @@ const VEHICLES = {
       if (lv.sidecar) sidecar(g);
     },
   },
+  motorcycle: {
+    name: 'Motorcycle', price: 12000, speed: 20, accel: 4, pose: 'motor',
+    seat: () => .12,
+    parts: {
+      engine: { name: 'Racing engine', prices: [2000, 3500], speed: 1.5 },
+      bags: { name: 'Saddlebags', prices: [1800], carry: 1 },
+    },
+    model(g, lv, paint = 0x2b2f36) {
+      for (const z of [-.95, 1.05]) wheel(.46, .3, z, g);
+      box(.55, .5, 1.5, paint, 0, .85, .1, g);
+      box(.5, .35, .7, paint, 0, 1.2, .35, g);
+      box(.46, .16, .85, 0x151515, 0, 1.08, -.45, g);
+      box(1, .1, .1, 0x222222, 0, 1.55, .75, g);
+      box(.12, .7, .12, 0xb8bec6, 0, 1.15, .85, g);
+      for (const s of [-1, 1]) {
+        box(.14, .14, .9, 0xb8bec6, s * .36, .45, -.5, g);
+        if (lv.bags) box(.26, .5, .7, 0x5a4636, s * .44, .85, -.55, g);
+      }
+    },
+  },
+  tricycle: {
+    name: 'Tricycle', price: 18000, speed: 17.5, accel: 3, carry: 3, pose: 'motor',
+    seat: () => .05,
+    parts: {
+      engine: { name: 'Stronger engine', prices: [2500], speed: 1.5 },
+      rack: { name: 'Roof rack', prices: [2200], carry: 1 },
+    },
+    model(g, lv, paint = 0x2fb5a8) {
+      for (const [x, z] of [[0, -.8], [0, .85], [1.3, 0]]) wheel(.36, .24, z, g, x);
+      box(.6, .4, 1.7, paint, 0, .62, 0, g);
+      box(.62, .95, .16, paint, 0, 1.05, .72, g);
+      box(.95, .1, .1, 0x222222, 0, 1.55, .68, g);
+      box(.52, .2, .9, 0x222222, 0, .93, -.2, g);
+      box(1.4, .9, 1.9, paint, 1.3, 1.05, 0, g);
+      box(1.55, .14, 2.2, 0xf1efe9, 1.3, 2.25, 0, g);
+      for (const [x, z] of [[.68, -.95], [.68, .95], [1.92, -.95], [1.92, .95]]) box(.08, .8, .08, 0x333333, x, 1.85, z, g);
+      if (lv.rack) box(1.1, .4, 1.5, 0xb98a56, 1.3, 2.5, 0, g);
+    },
+  },
 };
 
 const VEHICLE_KEYS = Object.keys(VEHICLES);

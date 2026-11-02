@@ -84,7 +84,7 @@ function dealerList() {
     ...VEHICLE_KEYS.map(k => {
       const v = VEHICLES[k];
       if (save.owned.includes(k)) return row(v.name, rideLine(k), save.equipped === k ? 'Using' : 'Use', save.equipped !== k, () => useRide(k));
-      const line = `${v.speed} m/s · carries 1`;
+      const line = `${v.speed} m/s · carries ${v.carry ?? 1}`;
       if (k === nextVehicle()) return row(v.name, line, `₱${v.price}`, save.cash >= v.price, () => buyVehicle(k));
       return row(v.name, line, 'Locked', false);
     }),
