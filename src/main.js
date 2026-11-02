@@ -4,7 +4,7 @@ import { DOG_TYPES } from './config.js';
 import { renderer, scene, camera, blocks, walls, colliders, hideDistant } from './engine.js';
 import { VEHICLES } from './data/vehicles.js';
 import { HOMES } from './data/homes.js';
-import { ROADS, HOUSES, LOTS } from './world.js';
+import { ROADS, HOUSES, LOTS, clearSpot } from './world.js';
 import { clock, updateDay } from './daynight.js';
 import { player } from './player.js';
 import { save, rideStats } from './save.js';
@@ -65,7 +65,7 @@ renderer.setAnimationLoop(now => {
 
 // Handle for scripted checks from the console.
 window.game = {
-  player, dogs, citizens, sounds, lady, clock, dealer, buyer, nearDealer, takePackage, cars, arrest, colliders, ROADS, HOUSES, currentOffers, renewOffers, acceptOffer, offerProblem, renderer, walls, blocks,
+  player, dogs, citizens, sounds, clearSpot, lady, clock, dealer, buyer, nearDealer, takePackage, cars, arrest, colliders, ROADS, HOUSES, currentOffers, renewOffers, acceptOffer, offerProblem, renderer, walls, blocks,
   get dayTime() { return clock.time; }, set dayTime(v) { clock.time = v; },
   LOTS, HOMES, VEHICLES, DOG_TYPES, orders, save, action, actionSpot, capacity, rideStats,
   net, startEvent, weather, rides, currentGoals, countGoal, buyVehicle, buyPart, buyHome, buyPaint, buyDecor, setVehicle, claimLot, showHome, get order() { return orders[0]; }, get cash() { return save.cash; }, get delivered() { return save.delivered; },

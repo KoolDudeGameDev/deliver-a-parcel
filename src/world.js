@@ -471,15 +471,21 @@ const COURT = { x: -92, z: 90, half: 8 };
   taken.push([x, z, 15]);
 }
 
-// Somewhere open and off the road, a random distance from a point. Uses Math.random, not rnd().
-function clearSpot(fromX, fromZ, near, far) {
-  for (let i = 0; i < 300; i++) {
-    const a = Math.random() * Math.PI * 2, d = near + Math.random() * (far - near);
-    const x = fromX + Math.cos(a) * d, z = fromZ + Math.sin(a) * d;
-    if (Math.abs(x) > EDGE - 8 || Math.abs(z) > EDGE - 8 || Math.hypot(x, z) < 20) continue;
-    if (!isTaken(x, z, 2) && !onRoad(x, z, 3) && !TREES.some(([tx, tz]) => Math.hypot(x - tx, z - tz) < 6)) return [x, z];
+// A random open spot anywhere on the map, off the road and at least `near` away from a point.
+// Uses Math.random, not rnd(). If none turns up, it settles for the farthest open spot it saw.
+function clearSpot(fromX, fromZ, near) {
+  let best = null, bestDistance = -1;
+  for (let i = 0; i < 400; i++) {
+    const x = (Math.random() - .5) * (EDGE * 2 - 16), z = (Math.random() - .5) * (EDGE * 2 - 16);
+    if (Math.hypot(x, z) < 20 || isTaken(x, z, 2) || onRoad(x, z, 3) || TREES.some(([tx, tz]) => Math.hypot(x - tx, z - tz) < 6)) continue;
+    const distance = Math.hypot(x - fromX, z - fromZ);
+    if (distance >= near) return [x, z];
+    if (distance > bestDistance) {
+      best = [x, z];
+      bestDistance = distance;
+    }
   }
-  return [-30, 30]; // Grass inside the inner ring, for the rare time nothing else turns up.
+  return best ?? [-30, 30];
 }
 
 const TREE_LEAVES = [0x3f9b52, 0x358a48, 0x4caf5f, 0x2f7f45];
