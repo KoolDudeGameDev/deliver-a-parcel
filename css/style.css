@@ -147,7 +147,40 @@ dialog button.swatch {
   box-shadow: var(--shadow-button);
 }
 dialog button.swatch:disabled { opacity: .4; }
-dialog button.swatch.picked { opacity: 1; border-color: var(--gold); border-width: 3px; }
+/* A ring with a gap shows on every colour, yellow included. */
+dialog button.swatch.picked { opacity: 1; border-color: rgb(255 255 255 / .28); box-shadow: 0 0 0 2px var(--panel-solid), 0 0 0 4px #fff; }
+.goal.me { color: var(--gold); }
+
+/* The intro: a panel on the left, with the rider standing in the open space to its right. */
+body.intro #hud, body.intro #touch, body.intro #btnMute { display: none; }
+#introBox {
+  width: min(92vw, 440px); margin: auto auto auto max(24px, env(safe-area-inset-left)); padding: 22px 22px 18px;
+}
+#introBox::backdrop { background: linear-gradient(90deg, rgb(5 10 20 / .5), rgb(5 10 20 / 0) 70%); }
+.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.brand img { width: 52px; height: 52px; flex: none; border: 2px solid rgb(255 255 255 / .85); border-radius: 12px; box-shadow: 0 3px 8px rgb(0 0 0 / .4); }
+#introBox h1 { margin: 0; font-size: 32px; font-weight: 800; line-height: 1.05; letter-spacing: -.02em; text-wrap: balance; }
+#introBox p { max-width: 46ch; font-variant-numeric: tabular-nums; }
+#introBox label, .look span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+#introBox #nameInput { margin-bottom: 12px; }
+#nameInput::placeholder { color: #7d8a9c; }
+#nameInput:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.look { display: grid; grid-template-columns: 50px 1fr; align-items: center; gap: 8px; margin-bottom: 6px; }
+.look .swatches { flex-wrap: nowrap; gap: 4px; }
+#introBox button.swatch { width: 30px; height: 30px; min-height: 30px; border-radius: 9px; }
+#btnPlay { min-width: 140px; font-size: 20px; }
+@media (max-height: 420px) {
+  #introBox { width: min(60vw, 400px); margin-left: max(12px, env(safe-area-inset-left)); padding: 10px 14px; }
+  #introBox h1 { font-size: 22px; }
+  .brand { gap: 8px; margin-bottom: 2px; }
+  .brand img { width: 32px; height: 32px; border-radius: 8px; }
+  #introBox p { margin-bottom: 6px; font-size: 13px; }
+  #introBox #nameInput { margin: 2px 0 6px; padding: 7px 10px; }
+  .look { grid-template-columns: 42px 1fr; margin-bottom: 4px; }
+  #introBox button.swatch { width: 27px; height: 27px; min-height: 27px; }
+  #introBox .row { margin-top: 6px; }
+}
+
 @media (max-height: 420px) {
   dialog { width: min(96vw, 720px); padding: 10px 16px; }
   dialog h3 { margin-top: 6px; break-after: avoid; }

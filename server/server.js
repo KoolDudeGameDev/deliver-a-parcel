@@ -1,22 +1,14 @@
-// The multiplayer server: one world of up to seven players. It passes positions between players,
-// looks after who owns which home, and keeps a leaderboard. The game itself runs in each browser.
+// The multiplayer server: one world of up to seven players. It passes positions, looks and each
+// player's worth and rating between them, and looks after who owns which home. The game itself runs
+// in each browser, and nothing is stored: the board shows whoever is in the world right now.
 import { createServer } from 'node:http';
-import { readFileSync, writeFileSync } from 'node:fs';
 import { WebSocketServer } from 'ws';
 
 const PORT = Number(process.env.PORT) || 8080;
-const BOARD_FILE = process.env.BOARD_FILE || './leaderboard.json';
-const MAX_PLAYERS = 7, TICK_MS = 100, MAX_MESSAGE = 1024, MAX_PER_SECOND = 40, BOARD_SIZE = 10;
+const MAX_PLAYERS = 7, TICK_MS = 100, MAX_MESSAGE = 1024, MAX_PER_SECOND = 40;
 
 const players = new Map();
 let nextId = 1;
-
-let leaderboard = [];
-try {
-  leaderboard = JSON.parse(readFileSync(BOARD_FILE, 'utf8'));
-} catch {
-  // No file yet, or a bad one. Start empty.
-}
 
 // Everything from a client is untrusted, so every field is checked before it's kept or shared.
 const number = (v, low, high, fallback = 0) => (Number.isFinite(v) ? Math.min(high, Math.max(low, v)) : fallback);
@@ -40,21 +32,6 @@ function broadcast(message) {
   for (const p of players.values()) if (p.ws.readyState === p.ws.OPEN) p.ws.send(data);
 }
 
-function updateBoard(p, delivered) {
-  const entry = leaderboard.find(e => e.name === p.name);
-  if (entry && entry.delivered >= delivered) return;
-  if (entry) entry.delivered = delivered;
-  else leaderboard.push({ name: p.name, delivered });
-  leaderboard.sort((a, b) => b.delivered - a.delivered);
-  leaderboard = leaderboard.slice(0, BOARD_SIZE);
-  try {
-    writeFileSync(BOARD_FILE, JSON.stringify(leaderboard));
-  } catch {
-    // Without a disk the board still works until the server restarts.
-  }
-  broadcast({ t: 'board', board: leaderboard });
-}
-
 function join(ws, m) {
   if (players.has(ws.id)) return;
   const slot = freeSlot(m.slot);
@@ -65,10 +42,10 @@ function join(ws, m) {
   }
   const p = {
     ws, id: ws.id, slot, name: text(m.name, 12) || 'Rider', x: 0, y: 0, z: 0, ry: 0, ride: null, speed: 0,
-    level: number(m.level, 0, 4), paint: color(m.paint), shirt: color(m.shirt), hat: color(m.hat),
+    level: 0, paint: null, shirt: null, hat: null, skin: null, pants: null, worth: 0, rating: 0,
   };
   players.set(ws.id, p);
-  send(ws, { t: 'welcome', id: p.id, slot, board: leaderboard });
+  send(ws, { t: 'welcome', id: p.id, slot });
 }
 
 function onMessage(ws, data) {
@@ -105,8 +82,12 @@ function onMessage(ws, data) {
     p.paint = color(m.paint);
     p.shirt = color(m.shirt);
     p.hat = color(m.hat);
-  } else if (m.t === 'score') {
-    updateBoard(p, number(m.delivered, 0, 1e7));
+    p.skin = color(m.skin);
+    p.pants = color(m.pants);
+  } else if (m.t === 'stats') {
+    // A browser could claim anything here, but it only ever shows to the six others in its world.
+    p.worth = Math.floor(number(m.worth, 0, 1e9));
+    p.rating = number(m.rating, 0, 5);
   }
 }
 
@@ -129,8 +110,8 @@ wss.on('connection', ws => {
 
 setInterval(() => {
   if (!players.size) return;
-  const list = [...players.values()].map(({ id, slot, name, x, y, z, ry, ride, speed, level, paint, shirt, hat }) =>
-    ({ id, slot, name, x, y, z, ry, ride, speed, level, paint, shirt, hat }));
+  const list = [...players.values()].map(({ id, slot, name, x, y, z, ry, ride, speed, level, paint, shirt, hat, skin, pants, worth, rating }) =>
+    ({ id, slot, name, x, y, z, ry, ride, speed, level, paint, shirt, hat, skin, pants, worth, rating }));
   broadcast({ t: 'w', players: list });
 }, TICK_MS);
 

@@ -11,6 +11,7 @@ The exceptions are under "Not CC0" below.
 | `ghost.mp3` | Ghost Whispers | Litruv | <https://freesound.org/people/Litruv/sounds/175944/> |
 | `tip.mp3` | confirmation_001 from Interface Sounds | Kenney | <https://kenney.nl/assets/interface-sounds> |
 | `order.mp3` | drop_002 from Interface Sounds | Kenney | <https://kenney.nl/assets/interface-sounds> |
+| `music-loop-town.mp3` | Loop Town (background music, evened out but not trimmed) | Fupi | <https://opengameart.org/content/loop-town> |
 
 ## Not CC0
 

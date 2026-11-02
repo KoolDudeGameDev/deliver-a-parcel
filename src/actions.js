@@ -1,12 +1,12 @@
 // What the action button does at each place on the map.
-import { claimBox, myLot, nearSpot } from './home.js';
+import { myLot, nearSpot } from './home.js';
 import { SHOPS } from './world.js';
 import { orders, nearHub, capacity } from './orders.js';
-import { boardBox, openBoard } from './board.js';
-import { shopBox, openShop } from './shop.js';
+import { openBoard } from './board.js';
+import { openShop } from './shop.js';
 import { nearDealer, takePackage } from './contraband.js';
 
-const dialogOpen = () => claimBox.open || shopBox.open || boardBox.open;
+const dialogOpen = () => !!document.querySelector('dialog[open]');
 
 function actionSpot() {
   if (orders.length < capacity() && nearHub()) return 'ORDER';

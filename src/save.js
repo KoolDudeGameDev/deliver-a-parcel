@@ -3,7 +3,7 @@ import { clamp } from './util.js';
 import { RUN } from './config.js';
 import { VEHICLES, VEHICLE_KEYS } from './data/vehicles.js';
 import { HOMES } from './data/homes.js';
-import { PAINTS, DECOR_KEYS } from './data/cosmetics.js';
+import { PAINTS, SKINS, DECOR, DECOR_KEYS } from './data/cosmetics.js';
 import { LOTS } from './world.js';
 
 // Lives in this browser for now. Anything unexpected in it just means a new game.
@@ -26,6 +26,7 @@ function cleanStyle(saved) {
   for (const k of VEHICLE_KEYS) if (isPaint(saved?.rides?.[k])) rides[k] = saved.rides[k];
   return {
     house: isPaint(saved?.house) ? saved.house : null, shirt: isPaint(saved?.shirt) ? saved.shirt : null, hat: isPaint(saved?.hat) ? saved.hat : null,
+    pants: isPaint(saved?.pants) ? saved.pants : null, skin: SKINS.includes(saved?.skin) ? saved.skin : null,
     rides, decor: DECOR_KEYS.filter(k => Array.isArray(saved?.decor) && saved.decor.includes(k)),
   };
 }
@@ -86,4 +87,16 @@ function rideStats(key) {
   return stats;
 }
 
-export { save, saveGame, rideStats };
+// What you're worth: cash plus everything you've built and bought, for the board in a shared world.
+function worth() {
+  let total = save.cash + HOMES.slice(1, save.homeLevel + 1).reduce((sum, h) => sum + h.price, 0);
+  for (const k of save.owned) {
+    total += VEHICLES[k].price;
+    for (const [p, def] of Object.entries(VEHICLES[k].parts)) total += def.prices.slice(0, save.parts[k][p]).reduce((a, b) => a + b, 0);
+  }
+  return total + save.style.decor.reduce((sum, k) => sum + DECOR[k].price, 0);
+}
+
+const rating = () => (save.ratingCount ? save.ratingSum / save.ratingCount : 0);
+
+export { save, saveGame, rideStats, worth, rating };

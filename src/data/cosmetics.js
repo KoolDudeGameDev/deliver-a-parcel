@@ -8,7 +8,9 @@ const PAINTS = [
   { name: 'Purple', color: 0x8d63d6 }, { name: 'Pink', color: 0xe77fb3 }, { name: 'White', color: 0xf1efe9 },
   { name: 'Black', color: 0x2b2f36 },
 ];
-const PAINT_PRICES = { house: 250, ride: 120, shirt: 60, hat: 40 };
+const PAINT_PRICES = { house: 250, ride: 120 };
+// Picked on the intro, for free, like the clothes. The first is the classic blocky yellow.
+const SKINS = [0xf6c945, 0xf3d2b3, 0xe0ac7e, 0xc68a5c, 0x9a6440, 0x6b4428];
 
 // Each stands in the yard in front of the home. Models face +z, like the home itself.
 const DECOR = {
@@ -64,4 +66,4 @@ const DECOR = {
 };
 const DECOR_KEYS = Object.keys(DECOR);
 
-export { PAINTS, PAINT_PRICES, DECOR, DECOR_KEYS };
+export { PAINTS, PAINT_PRICES, SKINS, DECOR, DECOR_KEYS };

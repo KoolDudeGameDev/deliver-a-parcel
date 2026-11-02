@@ -36,7 +36,7 @@ Every new mechanic should strengthen at least one of those.
 | The main climb | ₱41,250, about 400 average deliveries, or roughly 4 to 5 hours |
 | Motorcycle, tricycle and their parts | ₱42,000 more, for after that |
 
-Paint, clothes and garden items are cheap and on sale from the start.
+Paint and garden items are cheap and on sale from the start. Skin and clothes are free, on the intro.
 
 ## The plan
 
@@ -54,7 +54,7 @@ Rain, brownouts, fiesta, Undas, traffic, cats and geese.
 
 ### Phase 4: play together (first step built)
 
-Seven players can share a world, see each other, see each other's homes and share a leaderboard.
+Seven players can share a world, see each other, see each other's homes, and compare what they're worth and their rating on the order board.
 It needs a small always-on server, about US$2–3 a month, and the steps are in the README.
 
 Still to do:
@@ -62,7 +62,6 @@ Still to do:
 1. **Shared dogs and orders,** so everyone sees the same chase.
 2. **Compete for the same order.** First to the door gets the pay.
 3. **Team up.** Big parcels that need two riders.
-4. **A leaderboard that survives redeploys,** with a small database or a Fly volume.
 
 ## Balance questions to test with real players
 

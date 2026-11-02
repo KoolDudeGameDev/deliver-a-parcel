@@ -29,6 +29,7 @@ Imports only point up this list. There are no circular imports, so keep it that 
 | `shop.js`, `actions.js` | Shop panel, and what the action button does at each place |
 | `net.js` | Multiplayer client, off unless `MULTIPLAYER_URL` or `?server=` is set |
 | `home.js` | Upgrade panel, `action`, mounting and parking vehicles |
+| `intro.js` | The intro on every launch: name, skin and clothes, then Play joins the world |
 | `input.js`, `movement.js`, `camera.js` | Controls and per-frame movement |
 | `hud.js`, `minimap.js` | On-screen display |
 | `main.js` | Boot, the frame loop, the `window.game` test handle |
