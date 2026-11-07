@@ -1,5 +1,8 @@
 # Deliver a Parcel
 
+> **This browser version is the prototype.** Deliver a Parcel is now being built as a Roblox game:
+> <https://github.com/KoolDudeGameDev/food-delivery-roblox>. This version stays playable.
+
 <img src="assets/game-icon.png" width="160" height="160" alt="Deliver a Parcel game icon: a blocky rider holding up a parcel, chased by a dog">
 
 A blocky 3D delivery game that runs in your browser, on a computer or a phone. Start with a
